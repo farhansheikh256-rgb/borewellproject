@@ -1,0 +1,56 @@
+[
+  {
+    "id": "1",
+    "name": "Borewell Drilling",
+    "description": "Professional borewell drilling up to 1000 feet using advanced rotary rigs.",
+    "icon": "drill",
+    "price": "Starting at ₹8,000",
+    "category": "drilling",
+    "popular": true
+  },
+  {
+    "id": "2",
+    "name": "Submersible Pump Installation",
+    "description": "Supply and installation of high-efficiency submersible pumps for all bore depths.",
+    "icon": "pump",
+    "price": "Starting at ₹4,500",
+    "category": "pump",
+    "popular": true
+  },
+  {
+    "id": "3",
+    "name": "Water Testing",
+    "description": "Comprehensive water quality testing and analysis reports for potability.",
+    "icon": "test",
+    "price": "Starting at ₹1,200",
+    "category": "testing",
+    "popular": false
+  },
+  {
+    "id": "4",
+    "name": "Borewell Repair",
+    "description": "Expert repair and rejuvenation of existing borewells to restore water yield.",
+    "icon": "repair",
+    "price": "Starting at ₹2,500",
+    "category": "repair",
+    "popular": false
+  },
+  {
+    "id": "5",
+    "name": "Motor Repair",
+    "description": "On-site and workshop repair of submersible motors and panels.",
+    "icon": "motor",
+    "price": "Starting at ₹1,500",
+    "category": "repair",
+    "popular": false
+  },
+  {
+    "id": "6",
+    "name": "Casing & Lining",
+    "description": "PVC and steel casing installation to prevent borewell collapse.",
+    "icon": "casing",
+    "price": "Starting at ₹3,000",
+    "category": "drilling",
+    "popular": false
+  }
+]

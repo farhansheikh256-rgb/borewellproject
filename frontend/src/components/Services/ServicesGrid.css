@@ -1,0 +1,28 @@
+/* ── Services Grid ──────────────────────────────── */
+.services-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .services-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+}
+
+.services-grid-empty {
+  text-align: center;
+  padding: 3rem 1.5rem;
+  color: var(--text-muted, #7EADD4);
+  font-size: 1rem;
+  background: var(--glass, rgba(13, 31, 60, 0.6));
+  border-radius: 12px;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+}
+
+.services-grid-empty p {
+  margin: 0;
+}
