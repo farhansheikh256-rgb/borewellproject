@@ -47,7 +47,7 @@ export default function BookingForm() {
             required
           >
             <option value="">Select a service</option>
-            {services.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+            {services.map(s => <option key={s._id || s.id} value={s.name}>{s.name}</option>)}
           </select>
         </div>
 

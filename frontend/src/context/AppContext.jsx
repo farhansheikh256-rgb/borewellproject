@@ -36,9 +36,9 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  const login = async (password) => {
+  const login = async (username, password) => {
     try {
-      const res = await api.post('/auth/login', { password });
+      const res = await api.post('/auth/login', { username, password });
       if (res.data.success) {
         setAdminToken(res.data.token);
         localStorage.setItem('borewell_token', res.data.token);

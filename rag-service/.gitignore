@@ -1,0 +1,19 @@
+# Secrets
+.env
+
+# Data directories
+qdrant/
+uploads/*.pdf
+__pycache__/
+*.pyc
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# n8n local data
+.n8n/
+
+# Node
+node_modules/

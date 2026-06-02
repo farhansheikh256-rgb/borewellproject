@@ -1,0 +1,60 @@
+{
+  "id": "pdf-rag-chat-001",
+  "name": "PDF RAG - Chat Retrieval Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "rag-chat",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Chat Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 300],
+      "webhookId": "rag-chat-webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "// ──────────────────────────────────────────────────────────────\n// ALL-IN-ONE RAG Chat: embed question → search Qdrant → ask LLM\n// Uses 127.0.0.1 instead of localhost to avoid IPv6 issues\n// ──────────────────────────────────────────────────────────────\n\nconst OLLAMA = 'http://127.0.0.1:11434';\nconst QDRANT = 'http://127.0.0.1:6333';\nconst EMBED_MODEL = 'nomic-embed-text';\nconst CHAT_MODEL = 'gemma2:2b';\nconst COLLECTION = 'pdf_rag';\nconst SCORE_THRESHOLD = 0.3;\nconst TOP_K = 5;\n\nconst item = $input.first();\nconst question = (item.json.body?.question || item.json.question || '').trim();\nconst fileFilter = item.json.body?.file_filter || item.json.file_filter || null;\n\nif (!question || question.length < 3) {\n  return [{ json: { error: 'Please provide a question (min 3 chars)' } }];\n}\n\ntry {\n  // 1. Embed the question\n  const embedResp = await this.helpers.httpRequest({\n    method: 'POST',\n    url: `${OLLAMA}/api/embeddings`,\n    body: { model: EMBED_MODEL, prompt: question },\n    headers: { 'Content-Type': 'application/json' },\n    timeout: 60000\n  });\n\n  if (!embedResp.embedding) {\n    return [{ json: { question, answer: 'Error: Could not generate embedding.', sources: '' } }];\n  }\n\n  // 2. Search Qdrant\n  const searchPayload = {\n    vector: embedResp.embedding,\n    limit: TOP_K,\n    score_threshold: SCORE_THRESHOLD,\n    with_payload: true,\n    with_vector: false\n  };\n\n  if (fileFilter) {\n    searchPayload.filter = { must: [{ key: 'file_name', match: { value: fileFilter } }] };\n  }\n\n  const searchResp = await this.helpers.httpRequest({\n    method: 'POST',\n    url: `${QDRANT}/collections/${COLLECTION}/points/search`,\n    body: searchPayload,\n    headers: { 'Content-Type': 'application/json' },\n    timeout: 30000\n  });\n\n  const results = (searchResp.result || []).filter(r => r.score >= SCORE_THRESHOLD);\n\n  // 3. No context? Return early\n  if (results.length === 0) {\n    return [{ json: {\n      question,\n      answer: 'I could not find this information in the uploaded document.',\n      sources: 'No relevant context found',\n      chunks_retrieved: 0\n    }}];\n  }\n\n  // 4. Build context\n  const contextParts = [];\n  const sources = [];\n  for (const r of results) {\n    const p = r.payload;\n    const score = r.score.toFixed(3);\n    contextParts.push(`[Source: ${p.file_name}, Chunk ${p.chunk_index + 1}/${p.total_chunks}, Score: ${score}]\\n${p.text}`);\n    sources.push(`${p.file_name} (Chunk ${p.chunk_index + 1}, Score: ${score})`);\n  }\n  const context = contextParts.join('\\n\\n---\\n\\n');\n\n  // 5. Ask LLM\n  const systemPrompt = 'You are a precise document assistant. You MUST answer questions ONLY using the provided context. STRICT RULES: 1) NEVER use general knowledge. 2) NEVER invent facts. 3) If the answer is not in context, respond: I could not find this information in the uploaded document. 4) Mention source file and chunk number. 5) Be concise. 6) Quote from context when possible.';\n\n  const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'SET_YOUR_KEY_IN_ENV';\n  const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`;\n\n  const chatResp = await this.helpers.httpRequest({\n    method: 'POST',\n    url: geminiUrl,\n    body: {\n      contents: [{\n        role: \"user\",\n        parts: [{ text: systemPrompt + \"\\n\\nContext:\\n\\n\" + context + \"\\n\\n---\\n\\nQuestion: \" + question + \"\\n\\nAnswer based ONLY on the above context.\" }]\n      }],\n      generationConfig: { temperature: 0.1 }\n    },\n    headers: { 'Content-Type': 'application/json' },\n    timeout: 120000\n  });\n\n  const answer = chatResp.candidates?.[0]?.content?.parts?.[0]?.text || 'Error: No response from Gemini.';\n\n  return [{ json: {\n    question,\n    answer,\n    sources: sources.join('\\n'),\n    chunks_retrieved: results.length\n  }}];\n\n} catch (e) {\n  return [{ json: {\n    question,\n    answer: `Error: ${e.message}`,\n    sources: '',\n    chunks_retrieved: 0\n  }}];\n}"
+      },
+      "id": "rag-chat-all",
+      "name": "RAG Chat (Embed + Search + LLM)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [500, 300]
+    },
+    {
+      "parameters": {
+        "content": "## 💬 PDF RAG Chat (v2 Monolith)\n\nSingle Code node handles everything:\n1. Embeds question via Ollama\n2. Searches Qdrant for matching chunks\n3. Builds context with source attribution\n4. Asks LLM with anti-hallucination prompt\n\n**Test:**\n```\ncurl -X POST http://localhost:5678/webhook/rag-chat \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"question\": \"What is this about?\"}'\n```\n\n**Anti-hallucination:** Score threshold 0.3,\nstrict system prompt, source citations.",
+        "height": 340,
+        "width": 400,
+        "color": 4
+      },
+      "id": "sticky-info",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [180, -80]
+    }
+  ],
+  "connections": {
+    "Chat Webhook": {
+      "main": [
+        [
+          {
+            "node": "RAG Chat (Embed + Search + LLM)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": true
+}

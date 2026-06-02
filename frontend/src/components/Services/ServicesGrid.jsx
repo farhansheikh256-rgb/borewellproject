@@ -9,7 +9,7 @@ export default function ServicesGrid({ services }) {
   return (
     <div className="services-grid">
       {services.map(service => (
-        <ServiceCard key={service.id} service={service} />
+        <ServiceCard key={service._id || service.id} service={service} />
       ))}
     </div>
   );

@@ -1,0 +1,28 @@
+ * Tip: There are .env files present. Install python-dotenv to use them.
+==================================================
+  PDF RAG Server
+  http://localhost:3000
+==================================================
+ * Serving Flask app 'server'
+ * Debug mode: off
+[31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:3000
+ * Running on http://192.168.1.58:3000
+[33mPress CTRL+C to quit[0m
+127.0.0.1 - - [02/Jun/2026 15:10:09] "HEAD / HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 15:10:40] "GET / HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 15:10:41] "GET /api/documents HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 15:10:41] "[33mGET /sw.js HTTP/1.1[0m" 404 -
+127.0.0.1 - - [02/Jun/2026 15:10:55] "POST /api/upload HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 15:10:55] "GET /api/documents HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 15:10:59] "GET /api/documents HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 15:11:00] "GET /api/documents HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 15:11:03] "DELETE /api/documents/doc_1780393223_x HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 15:11:03] "GET /api/documents HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 15:12:04] "POST /api/chat HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 15:14:52] "POST /api/upload HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 15:14:53] "GET /api/documents HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 15:14:58] "GET /api/documents HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 15:15:09] "POST /api/chat HTTP/1.1" 200 -
+127.0.0.1 - - [02/Jun/2026 15:16:58] "POST /api/chat HTTP/1.1" 200 -

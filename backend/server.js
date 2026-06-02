@@ -1,4 +1,5 @@
 require('dotenv').config();
+const mongoose = require('mongoose');
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
@@ -9,6 +10,34 @@ const authRoutes = require('./src/routes/authRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+mongoose.connect(process.env.MONGO_URI)
+  .then(async () => {
+    console.log('✅ MongoDB connected successfully');
+    try {
+      const Service = require('./src/models/Service');
+      const count = await Service.countDocuments();
+      if (count === 0) {
+        console.log('🌱 Database is empty. Seeding services from services.json...');
+        const fs = require('fs');
+        const servicesData = JSON.parse(fs.readFileSync(path.join(__dirname, 'data', 'services.json'), 'utf8'));
+
+        // Remove individual 'id' fields to let MongoDB generate its own '_id'
+        const formattedServices = servicesData.map(s => {
+          const { id, ...rest } = s;
+          return rest;
+        });
+
+        await Service.insertMany(formattedServices);
+        console.log('🌱 Services seeded successfully!');
+      } else {
+        console.log(`ℹ️ Services collection already has ${count} records.`);
+      }
+    } catch (seedErr) {
+      console.error('❌ Error seeding database:', seedErr);
+    }
+  })
+  .catch(err => console.error('❌ MongoDB connection error:', err));
 
 // Middleware
 app.use(cors());

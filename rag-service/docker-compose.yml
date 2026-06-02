@@ -1,0 +1,56 @@
+##############################################################
+# Local RAG Stack - Qdrant Vector Database
+# 
+# Since n8n is already installed locally (offline),
+# this compose file only runs the Qdrant vector DB.
+#
+# If you later want n8n in Docker too, uncomment the
+# n8n service block below.
+#
+# Usage:
+#   docker-compose up -d
+#   docker-compose down
+#   docker-compose logs -f qdrant
+##############################################################
+
+version: "3.8"
+
+services:
+  # ──────────────────────────────────────────────
+  # Qdrant - Local Vector Database
+  # ──────────────────────────────────────────────
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant-local
+    ports:
+      - "6333:6333"   # REST API
+      - "6334:6334"   # gRPC
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    environment:
+      - QDRANT__SERVICE__GRPC_PORT=6334
+    restart: unless-stopped
+
+  # ──────────────────────────────────────────────
+  # (OPTIONAL) n8n in Docker
+  # Uncomment if you want n8n containerized instead
+  # of using the local offline install.
+  # ──────────────────────────────────────────────
+  # n8n:
+  #   image: docker.n8n.io/n8nio/n8n:latest
+  #   container_name: n8n-local
+  #   ports:
+  #     - "5678:5678"
+  #   volumes:
+  #     - n8n_data:/home/node/.n8n
+  #   environment:
+  #     - N8N_BASIC_AUTH_ACTIVE=true
+  #     - N8N_BASIC_AUTH_USER=admin
+  #     - N8N_BASIC_AUTH_PASSWORD=admin
+  #     - GENERIC_TIMEZONE=Asia/Kolkata
+  #     - TZ=Asia/Kolkata
+  #   restart: unless-stopped
+
+volumes:
+  qdrant_storage:
+  # n8n_data:

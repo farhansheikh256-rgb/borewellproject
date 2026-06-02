@@ -1,0 +1,103 @@
+{
+  "id": "pdf-rag-ingestion-001",
+  "name": "PDF RAG - Ingestion Pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "pdf-ingest",
+        "options": {},
+        "responseMode": "lastNode"
+      },
+      "id": "webhook-trigger",
+      "name": "PDF Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [220, 300],
+      "webhookId": "pdf-ingest-webhook"
+    },
+    {
+      "parameters": {
+        "filePath": "={{ $json.body?.file_path || $json.query?.file_path || 'C:/Users/PC/.n8n-files/1111111111111.pdf' }}"
+      },
+      "id": "read-file",
+      "name": "Read PDF File",
+      "type": "n8n-nodes-base.readBinaryFile",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "data"
+      },
+      "id": "extract-pdf",
+      "name": "Extract from PDF",
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [700, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Chunk extracted text, embed with Ollama, store in Qdrant\nconst OLLAMA = 'http://localhost:11434';\nconst QDRANT = 'http://localhost:6333';\n\nconst item = $input.first();\nconst fullText = (item.json.data || '').trim();\nconst fileName = $('Read PDF File').first().json.fileName || 'uploaded.pdf';\n\nif (fullText.length < 30) {\n  return [{ json: { error: 'Text too short', length: fullText.length } }];\n}\n\nconst docId = `doc_${Date.now()}`;\nconst chunks = [];\nlet start = 0, idx = 0;\n\nwhile (start < fullText.length) {\n  let end = Math.min(start + 500, fullText.length);\n  if (end < fullText.length) {\n    const bp = Math.max(fullText.lastIndexOf('.', end), fullText.lastIndexOf('\\n', end));\n    if (bp > start + 200) end = bp + 1;\n  }\n  const t = fullText.substring(start, end).trim();\n  if (t.length > 20) chunks.push({ text: t, idx: idx++ });\n  start = end - 100;\n  if (end >= fullText.length) break;\n}\n\nlet ok = 0, errs = [];\nfor (const c of chunks) {\n  try {\n    const emb = await this.helpers.httpRequest({\n      method: 'POST', url: `${OLLAMA}/api/embeddings`,\n      body: { model: 'nomic-embed-text', prompt: c.text },\n      headers: { 'Content-Type': 'application/json' },\n      timeout: 60000\n    });\n    if (!emb.embedding) { errs.push(`chunk ${c.idx}: no embedding`); continue; }\n\n    let h = 0;\n    for (let i = 0; i < docId.length; i++) h = ((h << 5) - h) + docId.charCodeAt(i) & 0x7fffffff;\n\n    await this.helpers.httpRequest({\n      method: 'PUT', url: `${QDRANT}/collections/pdf_rag/points`,\n      body: { points: [{ id: h + c.idx, vector: emb.embedding, payload: {\n        text: c.text, document_id: docId, file_name: fileName,\n        chunk_index: c.idx, source: fileName,\n        uploaded_at: new Date().toISOString(), total_chunks: chunks.length\n      }}]},\n      headers: { 'Content-Type': 'application/json' }, timeout: 30000\n    });\n    ok++;\n  } catch(e) { errs.push(`chunk ${c.idx}: ${e.message}`); }\n}\n\nreturn [{ json: {\n  status: ok > 0 ? 'success' : 'failed',\n  chunks_stored: ok, total_chunks: chunks.length,\n  document_id: docId, file_name: fileName,\n  text_length: fullText.length,\n  errors: errs.length ? errs : undefined\n}}];"
+      },
+      "id": "ingest",
+      "name": "Chunk + Embed + Store",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [940, 300]
+    },
+    {
+      "parameters": {
+        "content": "## 📄 PDF RAG Ingestion\n\n**Flow:** Webhook → Read File from Disk → Extract PDF Text → Chunk + Embed + Store\n\n**Usage:**\n```\ncurl -X POST 'http://localhost:5678/webhook/pdf-ingest?file_path=C:/path/to/file.pdf'\n```\n\nOr POST JSON body:\n```json\n{\"file_path\": \"C:/path/to/file.pdf\"}\n```\n\nDefault path: uploads/1111111111111.pdf",
+        "height": 280,
+        "width": 380,
+        "color": 4
+      },
+      "id": "sticky-info",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [180, -60]
+    }
+  ],
+  "connections": {
+    "PDF Webhook": {
+      "main": [
+        [
+          {
+            "node": "Read PDF File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read PDF File": {
+      "main": [
+        [
+          {
+            "node": "Extract from PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from PDF": {
+      "main": [
+        [
+          {
+            "node": "Chunk + Embed + Store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": true
+}

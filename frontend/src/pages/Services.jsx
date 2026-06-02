@@ -1,10 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import ServicesGrid from '../components/Services/ServicesGrid';
 import { useAppContext } from '../context/AppContext';
 
 export default function Services() {
   const { services, loading } = useAppContext();
+  const location = useLocation();
   const [filter, setFilter] = useState('All');
+
+  useEffect(() => {
+    if (location.state?.category) {
+      setFilter(location.state.category);
+    }
+  }, [location.state]);
 
   const categories = ['All', 'drilling', 'pump', 'testing', 'repair'];
 

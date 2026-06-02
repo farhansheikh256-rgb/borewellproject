@@ -1,35 +1,57 @@
-const db = require('../models/db');
-const { v4: uuidv4 } = require('uuid');
+const Service = require('../models/Service');
 
-exports.getAllServices = (req, res) => {
-  const services = db.getServices();
-  res.json({ success: true, data: services });
+exports.getAllServices = async (req, res) => {
+  try {
+    const services = await Service.find();
+    res.json({ success: true, data: services });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 };
 
-exports.createService = (req, res) => {
-  const { name, description, icon, price, category, popular } = req.body;
-  if (!name || !price) return res.status(400).json({ success: false, message: 'Name and price required.' });
-  const services = db.getServices();
-  const newService = { id: uuidv4(), name, description: description || '', icon: icon || 'default', price, category: category || 'general', popular: !!popular };
-  services.push(newService);
-  db.saveServices(services);
-  res.status(201).json({ success: true, data: newService });
+exports.createService = async (req, res) => {
+  try {
+    const { name, description, icon, price, category, popular } = req.body;
+    if (!name || !price) {
+      return res.status(400).json({ success: false, message: 'Name and price required.' });
+    }
+    
+    const newService = await Service.create({
+      name, description: description || '', icon: icon || 'default', 
+      price, category: category || 'general', popular: !!popular
+    });
+    
+    res.status(201).json({ success: true, data: newService });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 };
 
-exports.updateService = (req, res) => {
-  const { id } = req.params;
-  const services = db.getServices();
-  const idx = services.findIndex(s => s.id === id);
-  if (idx === -1) return res.status(404).json({ success: false, message: 'Service not found.' });
-  services[idx] = { ...services[idx], ...req.body, id };
-  db.saveServices(services);
-  res.json({ success: true, data: services[idx] });
+exports.updateService = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const service = await Service.findByIdAndUpdate(
+      id,
+      { ...req.body },
+      { new: true }
+    );
+    
+    if (!service) {
+      return res.status(404).json({ success: false, message: 'Service not found.' });
+    }
+    
+    res.json({ success: true, data: service });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 };
 
-exports.deleteService = (req, res) => {
-  const { id } = req.params;
-  let services = db.getServices();
-  services = services.filter(s => s.id !== id);
-  db.saveServices(services);
-  res.json({ success: true, message: 'Service deleted.' });
+exports.deleteService = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Service.findByIdAndDelete(id);
+    res.json({ success: true, message: 'Service deleted.' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
 };

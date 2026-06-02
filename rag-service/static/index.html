@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PDF RAG Chat</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#0a0a0f;--surface:#12121a;--surface2:#1a1a2e;--border:#2a2a3e;--primary:#6c63ff;--primary-glow:#6c63ff40;--accent:#00d4aa;--text:#e8e8f0;--text2:#8888a0;--danger:#ff4757;--success:#2ed573;--glass:rgba(255,255,255,0.03)}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex}
+/* Sidebar */
+.sidebar{width:280px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+.sidebar-header{padding:20px;border-bottom:1px solid var(--border)}
+.sidebar-header h1{font-size:18px;font-weight:700;background:linear-gradient(135deg,var(--primary),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sidebar-header p{font-size:11px;color:var(--text2);margin-top:4px}
+/* Upload */
+.upload-zone{margin:16px;padding:24px 16px;border:2px dashed var(--border);border-radius:12px;text-align:center;cursor:pointer;transition:all .3s}
+.upload-zone:hover,.upload-zone.drag-over{border-color:var(--primary);background:var(--primary-glow)}
+.upload-zone svg{width:32px;height:32px;stroke:var(--text2);margin-bottom:8px}
+.upload-zone p{font-size:12px;color:var(--text2)}
+.upload-zone .upload-btn{margin-top:10px;padding:8px 16px;background:var(--primary);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;transition:transform .2s}
+.upload-zone .upload-btn:hover{transform:scale(1.05)}
+#fileInput{display:none}
+/* Progress */
+.upload-progress{margin:0 16px;display:none}
+.progress-bar{height:4px;background:var(--border);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--primary),var(--accent));width:0;transition:width .3s;border-radius:4px}
+.progress-text{font-size:11px;color:var(--text2);margin-top:6px;text-align:center}
+/* Doc List */
+.doc-list-header{padding:12px 16px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--text2);border-bottom:1px solid var(--border)}
+.doc-list{flex:1;overflow-y:auto;padding:8px}
+.doc-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:background .2s;margin-bottom:4px}
+.doc-item:hover{background:var(--surface2)}
+.doc-item.active{background:var(--primary-glow);border:1px solid var(--primary)}
+.doc-icon{width:32px;height:32px;background:linear-gradient(135deg,#ff6b6b,#ee5a24);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0}
+.doc-info{flex:1;min-width:0}
+.doc-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-meta{font-size:10px;color:var(--text2);margin-top:2px}
+.doc-delete{opacity:0;transition:opacity .2s;background:none;border:none;color:var(--danger);cursor:pointer;font-size:14px;padding:4px}
+.doc-item:hover .doc-delete{opacity:1}
+/* Main Chat */
+.main{flex:1;display:flex;flex-direction:column;min-width:0}
+.chat-header{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;background:var(--surface)}
+.chat-header h2{font-size:15px;font-weight:600;flex:1}
+.model-badge{padding:4px 10px;border-radius:20px;font-size:10px;font-weight:600;background:var(--surface2);border:1px solid var(--border);color:var(--accent)}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--success);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+/* Messages */
+.messages{flex:1;overflow-y:auto;padding:24px;display:flex;flex-direction:column;gap:16px}
+.msg{max-width:75%;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg.user{align-self:flex-end}
+.msg.assistant{align-self:flex-start}
+.msg-bubble{padding:14px 18px;border-radius:16px;font-size:13.5px;line-height:1.6;word-wrap:break-word}
+.msg.user .msg-bubble{background:linear-gradient(135deg,var(--primary),#5a52e0);color:#fff;border-bottom-right-radius:4px}
+.msg.assistant .msg-bubble{background:var(--surface2);border:1px solid var(--border);border-bottom-left-radius:4px}
+.msg-model{font-size:10px;color:var(--text2);margin-top:4px;padding-left:4px}
+.sources{margin-top:10px;padding:10px;background:var(--glass);border:1px solid var(--border);border-radius:8px}
+.sources-title{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:6px}
+.source-chip{display:inline-block;padding:3px 8px;margin:2px;background:var(--surface);border:1px solid var(--border);border-radius:12px;font-size:10px;color:var(--text2)}
+/* Welcome */
+.welcome{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px;text-align:center}
+.welcome-icon{width:80px;height:80px;background:linear-gradient(135deg,var(--primary),var(--accent));border-radius:24px;display:flex;align-items:center;justify-content:center;font-size:36px;margin-bottom:20px;box-shadow:0 8px 32px var(--primary-glow)}
+.welcome h2{font-size:22px;font-weight:700;margin-bottom:8px}
+.welcome p{font-size:13px;color:var(--text2);max-width:360px;line-height:1.6}
+.suggestions{display:flex;gap:8px;margin-top:20px;flex-wrap:wrap;justify-content:center}
+.suggestion{padding:8px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text2);cursor:pointer;transition:all .2s}
+.suggestion:hover{border-color:var(--primary);color:var(--text);background:var(--primary-glow)}
+/* Input */
+.input-area{padding:16px 24px;border-top:1px solid var(--border);background:var(--surface)}
+.input-row{display:flex;gap:10px;align-items:flex-end}
+.input-row textarea{flex:1;padding:12px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:inherit;font-size:13px;resize:none;outline:none;max-height:120px;line-height:1.5;transition:border-color .2s}
+.input-row textarea:focus{border-color:var(--primary)}
+.send-btn{width:44px;height:44px;background:linear-gradient(135deg,var(--primary),#5a52e0);border:none;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .2s,opacity .2s;flex-shrink:0}
+.send-btn:hover{transform:scale(1.05)}
+.send-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.send-btn svg{width:18px;height:18px;stroke:#fff;fill:none}
+.typing{display:flex;gap:4px;padding:8px 16px;align-self:flex-start}
+.typing span{width:6px;height:6px;background:var(--text2);border-radius:50%;animation:bounce .6s infinite alternate}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{to{transform:translateY(-6px);opacity:.3}}
+/* Toast */
+.toast{position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:10px;font-size:12px;font-weight:500;z-index:1000;animation:slideIn .3s;display:none}
+.toast.success{background:var(--success);color:#000}
+.toast.error{background:var(--danger);color:#fff}
+@keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+/* Scrollbar */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <h1>📄 PDF RAG Chat</h1>
+    <p>Upload PDFs. Ask questions. Get answers.</p>
+  </div>
+
+  <div class="upload-zone" id="uploadZone">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M12 16V4m0 0L8 8m4-4l4 4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>
+    <p>Drag & drop PDF here</p>
+    <button class="upload-btn" onclick="document.getElementById('fileInput').click()">Browse Files</button>
+    <input type="file" id="fileInput" accept=".pdf">
+  </div>
+
+  <div class="upload-progress" id="uploadProgress">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText">Uploading...</div>
+  </div>
+
+  <div class="doc-list-header">Documents (<span id="docCount">0</span>)</div>
+  <div class="doc-list" id="docList"></div>
+</aside>
+
+<!-- Main -->
+<main class="main">
+  <div class="chat-header">
+    <div class="status-dot"></div>
+    <h2>Chat</h2>
+    <span class="model-badge" id="modelBadge">Gemini 2.0 Flash</span>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="welcome" id="welcome">
+      <div class="welcome-icon">🔍</div>
+      <h2>Ask your documents</h2>
+      <p>Upload a PDF, then ask any question. Answers come only from your documents — no hallucinations.</p>
+      <div class="suggestions">
+        <div class="suggestion" onclick="askSuggestion(this)">What is this document about?</div>
+        <div class="suggestion" onclick="askSuggestion(this)">Summarize the key points</div>
+        <div class="suggestion" onclick="askSuggestion(this)">List all important terms</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <div class="input-row">
+      <textarea id="questionInput" placeholder="Ask a question about your documents..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendQuestion()}"></textarea>
+      <button class="send-btn" id="sendBtn" onclick="sendQuestion()">
+        <svg viewBox="0 0 24 24" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+      </button>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const API = '';
+let activeFilter = null;
+
+// ─── Upload ──────────────────────────────────────
+const uploadZone = document.getElementById('uploadZone');
+const fileInput = document.getElementById('fileInput');
+
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag-over'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag-over'));
+uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('drag-over'); if(e.dataTransfer.files[0]) uploadFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', () => { if(fileInput.files[0]) uploadFile(fileInput.files[0]); });
+
+async function uploadFile(file) {
+  if(!file.name.toLowerCase().endsWith('.pdf')) return showToast('Only PDF files supported','error');
+  const prog = document.getElementById('uploadProgress');
+  const fill = document.getElementById('progressFill');
+  const text = document.getElementById('progressText');
+  prog.style.display = 'block';
+  fill.style.width = '20%';
+  text.textContent = `Uploading ${file.name}...`;
+
+  const fd = new FormData();
+  fd.append('file', file);
+
+  try {
+    fill.style.width = '40%';
+    text.textContent = 'Extracting & embedding...';
+    const resp = await fetch(`${API}/api/upload`, { method:'POST', body: fd });
+    const data = await resp.json();
+    if(!resp.ok) throw new Error(data.error || 'Upload failed');
+    fill.style.width = '100%';
+    text.textContent = `✓ ${data.chunks_stored} chunks stored`;
+    showToast(`${file.name} ingested (${data.chunks_stored} chunks)`,'success');
+    loadDocuments();
+    setTimeout(() => { prog.style.display='none'; fill.style.width='0'; }, 2000);
+  } catch(e) {
+    text.textContent = `✗ ${e.message}`;
+    showToast(e.message,'error');
+    setTimeout(() => { prog.style.display='none'; fill.style.width='0'; }, 3000);
+  }
+}
+
+// ─── Documents ──────────────────────────────────
+async function loadDocuments() {
+  try {
+    const resp = await fetch(`${API}/api/documents`);
+    const data = await resp.json();
+    const list = document.getElementById('docList');
+    document.getElementById('docCount').textContent = data.documents.length;
+    list.innerHTML = '';
+
+    // "All" option
+    const allEl = document.createElement('div');
+    allEl.className = 'doc-item' + (!activeFilter?' active':'');
+    allEl.innerHTML = `<div class="doc-icon" style="background:linear-gradient(135deg,var(--primary),var(--accent))">ALL</div><div class="doc-info"><div class="doc-name">All Documents</div><div class="doc-meta">${data.documents.length} files</div></div>`;
+    allEl.onclick = () => { activeFilter=null; loadDocuments(); };
+    list.appendChild(allEl);
+
+    data.documents.forEach(doc => {
+      const el = document.createElement('div');
+      el.className = 'doc-item' + (activeFilter===doc.file_name?' active':'');
+      const ext = doc.file_name.split('.').pop().toUpperCase();
+      el.innerHTML = `<div class="doc-icon">${ext}</div><div class="doc-info"><div class="doc-name">${doc.file_name}</div><div class="doc-meta">${doc.chunks_stored} chunks</div></div><button class="doc-delete" onclick="event.stopPropagation();deleteDoc('${doc.document_id}')">✕</button>`;
+      el.onclick = () => { activeFilter=doc.file_name; loadDocuments(); };
+      list.appendChild(el);
+    });
+  } catch(e) { console.error(e); }
+}
+
+async function deleteDoc(docId) {
+  if(!confirm('Delete this document?')) return;
+  try {
+    await fetch(`${API}/api/documents/${docId}`, { method:'DELETE' });
+    showToast('Document deleted','success');
+    if(activeFilter) activeFilter=null;
+    loadDocuments();
+  } catch(e) { showToast(e.message,'error'); }
+}
+
+// ─── Chat ──────────────────────────────────────
+async function sendQuestion() {
+  const input = document.getElementById('questionInput');
+  const q = input.value.trim();
+  if(!q) return;
+  input.value = '';
+  input.style.height = 'auto';
+
+  document.getElementById('welcome').style.display='none';
+  addMessage(q,'user');
+
+  // Typing indicator
+  const typing = document.createElement('div');
+  typing.className='typing';
+  typing.innerHTML='<span></span><span></span><span></span>';
+  document.getElementById('messages').appendChild(typing);
+  scrollBottom();
+
+  document.getElementById('sendBtn').disabled=true;
+
+  try {
+    const body = { question: q };
+    if(activeFilter) body.file_filter = activeFilter;
+    const resp = await fetch(`${API}/api/chat`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+    const data = await resp.json();
+    typing.remove();
+    if(data.error) { addMessage(`Error: ${data.error}`,'assistant'); }
+    else {
+      addMessage(data.answer, 'assistant', data.sources, data.model);
+      document.getElementById('modelBadge').textContent = data.model || 'LLM';
+    }
+  } catch(e) { typing.remove(); addMessage(`Error: ${e.message}`,'assistant'); }
+  document.getElementById('sendBtn').disabled=false;
+  scrollBottom();
+}
+
+function addMessage(text, role, sources, model) {
+  const div = document.createElement('div');
+  div.className = `msg ${role}`;
+  let html = `<div class="msg-bubble">${escHtml(text).replace(/\n/g,'<br>')}</div>`;
+  if(model) html += `<div class="msg-model">via ${model}</div>`;
+  if(sources && sources.length) {
+    html += `<div class="sources"><div class="sources-title">Sources</div>`;
+    sources.forEach(s => { html += `<span class="source-chip">${s.file} — Chunk ${s.chunk}/${s.total} (${(s.score*100).toFixed(0)}%)</span>`; });
+    html += `</div>`;
+  }
+  div.innerHTML = html;
+  document.getElementById('messages').appendChild(div);
+  scrollBottom();
+}
+
+function askSuggestion(el) {
+  document.getElementById('questionInput').value = el.textContent;
+  sendQuestion();
+}
+
+function scrollBottom() { const m=document.getElementById('messages'); m.scrollTop=m.scrollHeight; }
+function escHtml(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+function showToast(msg, type) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=`toast ${type}`; t.style.display='block';
+  setTimeout(()=>t.style.display='none', 3000);
+}
+
+// Auto-resize textarea
+document.getElementById('questionInput').addEventListener('input', function() {
+  this.style.height='auto'; this.style.height=Math.min(this.scrollHeight,120)+'px';
+});
+
+// Init
+loadDocuments();
+</script>
+</body>
+</html>

@@ -95,7 +95,7 @@ export default function AdminEnquiries() {
               </thead>
               <tbody>
                 {filtered.map(eq => (
-                  <tr key={eq.id}>
+                  <tr key={eq._id || eq.id}>
                     <td>
                       <strong>{eq.name}</strong><br/>
                       <small className="text-muted">{new Date(eq.createdAt).toLocaleDateString()}</small>
@@ -115,7 +115,7 @@ export default function AdminEnquiries() {
                     <td>
                       <select 
                         value={eq.status} 
-                        onChange={(e) => updateStatus(eq.id, e.target.value)}
+                        onChange={(e) => updateStatus(eq._id || eq.id, e.target.value)}
                         className={`status-badge status-${eq.status.split(' ')[0]}`}
                         style={{ border: 'none', cursor: 'pointer', outline: 'none' }}
                       >
@@ -125,7 +125,7 @@ export default function AdminEnquiries() {
                       </select>
                     </td>
                     <td>
-                      <button onClick={() => deleteEnquiry(eq.id)} style={{ background: 'none', border: 'none', color: '#dc3545', cursor: 'pointer', fontSize: '1.2rem' }}>
+                      <button onClick={() => deleteEnquiry(eq._id || eq.id)} style={{ background: 'none', border: 'none', color: '#dc3545', cursor: 'pointer', fontSize: '1.2rem' }}>
                         🗑️
                       </button>
                     </td>

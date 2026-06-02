@@ -234,7 +234,7 @@ function BorewellTruck({ scrollProgress }) {
 }
 
 /* ─── Realistic Metallic Drill Bit ─── */
-function DrillBit({ scrollProgress }) {
+function DrillBit({ scrollProgress, isMobile }) {
   const ref = useRef();
   const sparkRef = useRef();
 
@@ -280,9 +280,9 @@ function DrillBit({ scrollProgress }) {
       {scrollProgress > 0.1 && scrollProgress < 0.95 && (
         <Sparkles 
           ref={sparkRef}
-          count={50} 
+          count={isMobile ? 15 : 50} 
           scale={[1, 0.2, 1]} 
-          size={3} 
+          size={isMobile ? 2 : 3} 
           speed={0.5} 
           color="#ffaa00" 
         />
@@ -292,9 +292,9 @@ function DrillBit({ scrollProgress }) {
 }
 
 /* ─── Glowing Water Belt ─── */
-function WaterBurst({ scrollProgress }) {
+function WaterBurst({ scrollProgress, isMobile }) {
   const ref = useRef();
-  const count = 400;
+  const count = isMobile ? 100 : 400;
   // Burst heavily in the deepest layer
   const burstIntensity = Math.max(0, (scrollProgress - 0.8) / 0.2);
 
@@ -307,7 +307,7 @@ function WaterBurst({ scrollProgress }) {
       pos[i * 3 + 2] = (Math.random() - 0.5) * 4; // Z
     }
     return pos;
-  }, []);
+  }, [count]);
 
   useFrame((state) => {
     if (!ref.current) return;
@@ -395,7 +395,7 @@ function CameraRig({ scrollProgress }) {
 }
 
 /* ─── The Complete Scene ─── */
-function Scene({ scrollProgress }) {
+function Scene({ scrollProgress, isMobile }) {
   const layers = [
     { y: 1.5, h: 2, color: '#2a1f18', label: 'TOP SOIL' },
     { y: -0.5, h: 2, color: '#1a1816', label: 'HARD CLAY' },
@@ -413,7 +413,7 @@ function Scene({ scrollProgress }) {
       
       <Environment preset="city" />
       <ambientLight intensity={0.3} />
-      <directionalLight position={[10, 20, 10]} intensity={1.5} color="#dbeaff" castShadow />
+      <directionalLight position={[10, 20, 10]} intensity={isMobile ? 1.0 : 1.5} color="#dbeaff" castShadow={!isMobile} />
       
       {/* Deep blue ambient glow from the bottom water belt */}
       <pointLight position={[1.2, -10.5, 0]} color="#00C2FF" intensity={scrollProgress > 0.7 ? (scrollProgress - 0.7) * 15 : 0} distance={15} />
@@ -421,13 +421,13 @@ function Scene({ scrollProgress }) {
       <CameraRig scrollProgress={scrollProgress} />
       
       {/* Ground Surface Line */}
-      <mesh position={[0, 2.5, -2.5]} rotation={[-Math.PI/2, 0, 0]} receiveShadow>
+      <mesh position={[0, 2.5, -2.5]} rotation={[-Math.PI/2, 0, 0]} receiveShadow={!isMobile}>
         <planeGeometry args={[50, 50]} />
         <meshStandardMaterial color="#1a2f16" roughness={1} />
       </mesh>
 
       <BorewellTruck scrollProgress={scrollProgress} />
-      <DrillBit scrollProgress={scrollProgress} />
+      <DrillBit scrollProgress={scrollProgress} isMobile={isMobile} />
       
       {layers.map((l, i) => (
         <EarthLayer key={i} y={l.y} radius={3.5} height={l.h} color={l.color} label={l.label}>
@@ -435,15 +435,17 @@ function Scene({ scrollProgress }) {
         </EarthLayer>
       ))}
       
-      <WaterBurst scrollProgress={scrollProgress} />
+      <WaterBurst scrollProgress={scrollProgress} isMobile={isMobile} />
       <HUDPanel scrollProgress={scrollProgress} />
 
-      {/* Cinematic Post-Processing */}
-      <EffectComposer disableNormalPass>
-        <Bloom luminanceThreshold={0.2} mipmapBlur intensity={1.5} />
-        <DepthOfField focusDistance={0.05} focalLength={0.1} bokehScale={3} />
-        <Vignette eskil={false} offset={0.1} darkness={1.1} />
-      </EffectComposer>
+      {/* Cinematic Post-Processing (Completely bypassed on mobile for a massive framerate boost) */}
+      {!isMobile && (
+        <EffectComposer disableNormalPass>
+          <Bloom luminanceThreshold={0.2} mipmapBlur intensity={1.5} />
+          <DepthOfField focusDistance={0.05} focalLength={0.1} bokehScale={3} />
+          <Vignette eskil={false} offset={0.1} darkness={1.1} />
+        </EffectComposer>
+      )}
     </>
   );
 }
@@ -488,8 +490,10 @@ function HeroOverlay({ scrollProgress }) {
 export default function Hero3D() {
   const containerRef = useRef(null);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    setIsMobile(/Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent));
     const handleScroll = () => {
       if (!containerRef.current) return;
       const rect = containerRef.current.getBoundingClientRect();
@@ -511,12 +515,13 @@ export default function Hero3D() {
     >
       <div className="hero3d-sticky" style={{ position: 'sticky', top: 0, height: '100vh', width: '100%', overflow: 'hidden' }}>
         <Canvas
-          shadows
+          shadows={!isMobile}
           camera={{ position: [-15, 5, 7], fov: 45 }}
-          gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
-          dpr={[1, 2]}
+          gl={{ antialias: !isMobile, alpha: false, powerPreference: "high-performance" }}
+          dpr={isMobile ? 1 : [1, 1.5]}
+          style={{ pointerEvents: 'none' }}
         >
-          <Scene scrollProgress={scrollProgress} />
+          <Scene scrollProgress={scrollProgress} isMobile={isMobile} />
         </Canvas>
         <HeroOverlay scrollProgress={scrollProgress} />
       </div>

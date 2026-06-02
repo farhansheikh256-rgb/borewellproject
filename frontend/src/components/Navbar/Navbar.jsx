@@ -29,6 +29,7 @@ export default function Navbar() {
           <Link to="/services">Services</Link>
           <Link to="/about">About</Link>
           <Link to="/contact">Contact</Link>
+          <Link to="/login" className="btn-outline" style={{ padding: '0.5rem 1.5rem', borderRadius: '30px' }}>Login</Link>
           <Link to="/book" className="btn-primary">Book Now</Link>
         </div>
 
@@ -41,6 +42,7 @@ export default function Navbar() {
           <Link to="/services" onClick={closeMenu}>Services</Link>
           <Link to="/about" onClick={closeMenu}>About</Link>
           <Link to="/contact" onClick={closeMenu}>Contact</Link>
+          <Link to="/login" className="btn-outline" onClick={closeMenu} style={{ padding: '0.5rem 1.5rem', borderRadius: '30px', textAlign: 'center' }}>Login</Link>
           <Link to="/book" className="btn-primary" onClick={closeMenu}>Book Now</Link>
         </div>
       </div>
