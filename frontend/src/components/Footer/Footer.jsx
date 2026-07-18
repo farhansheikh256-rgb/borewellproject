@@ -10,7 +10,7 @@ export default function Footer() {
           <div>
             <Link to="/" className="footer-logo">
               <FaTint />
-              <span>AquaDrill</span>
+              <span>Dr.Water</span>
             </Link>
             <p className="footer-desc mt-3">
               Professional borewell drilling, repair, and maintenance services. We dig deep to ensure you never run out of water.
@@ -99,15 +99,15 @@ export default function Footer() {
             <h4 className="footer-title">Contact Us</h4>
             <ul className="footer-links">
               <li>123, Borewell Avenue, Indore, MP</li>
-              <li>+91 98765 43210</li>
-              <li>contact@aquadrill.in</li>
+              <li><a href="tel:+918830251172" style={{ color: 'inherit', textDecoration: 'none' }}>+91 88302 51172</a></li>
+              <li>contact@drwater.in</li>
             </ul>
           </div>
         </div>
         
         <div className="footer-bottom">
           <p>
-            &copy; {new Date().getFullYear()} AquaDrill Services. All rights reserved.
+            &copy; {new Date().getFullYear()} Dr.Water Services. All rights reserved.
             {' | '}
             <Link to="/admin" style={{ opacity: 0.6, fontSize: '0.95rem', transition: 'opacity 0.3s' }} onMouseEnter={(e) => e.target.style.opacity = 1} onMouseLeave={(e) => e.target.style.opacity = 0.6}>
               Admin Portal

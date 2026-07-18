@@ -10,7 +10,7 @@ export default function ContactInfo() {
         <FaPhoneAlt />
         <div>
           <h5 className="mb-1">Phone</h5>
-          <p className="text-muted mb-0">+91 98765 43210</p>
+          <p className="text-muted mb-0"><a href="tel:+918830251172" style={{ color: 'inherit', textDecoration: 'none' }}>+91 88302 51172</a></p>
         </div>
       </div>
       
@@ -18,7 +18,7 @@ export default function ContactInfo() {
         <FaEnvelope />
         <div>
           <h5 className="mb-1">Email</h5>
-          <p className="text-muted mb-0">contact@aquadrill.in</p>
+          <p className="text-muted mb-0">contact@drwater.in</p>
         </div>
       </div>
       

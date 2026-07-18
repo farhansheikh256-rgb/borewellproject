@@ -5,7 +5,7 @@ export default function About() {
     <div>
       <div className="py-5 text-center" style={{ background: 'var(--surface-2)', paddingTop: '120px' }}>
         <div className="container">
-          <h1 className="section-title">About AquaDrill</h1>
+          <h1 className="section-title">About Dr.Water</h1>
           <p className="section-subtitle mb-0">Digging deep since 2009 to provide sustainable water solutions.</p>
         </div>
       </div>
@@ -15,7 +15,7 @@ export default function About() {
           <div className="glass-card mb-5">
             <h2 className="mb-3 text-accent">Our Story</h2>
             <p className="text-muted">
-              AquaDrill was founded with a mission to address the growing water scarcity issues by providing 
+              Dr.Water was founded with a mission to address the growing water scarcity issues by providing 
               reliable, efficient, and technologically advanced borewell drilling services. Over the past 15 years, 
               we have grown from a single rig operation to one of the largest and most trusted borewell service 
               providers in the state.

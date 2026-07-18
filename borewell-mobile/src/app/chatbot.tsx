@@ -9,7 +9,7 @@ export default function ChatbotScreen() {
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const scrollViewRef = useRef(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -75,15 +75,15 @@ export default function ChatbotScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0f172a' },
+  container: { flex: 1, backgroundColor: '#1C3356' },
   messagesContainer: { flex: 1, padding: 15 },
   bubble: { maxWidth: '80%', padding: 12, borderRadius: 16, marginBottom: 10 },
-  botBubble: { backgroundColor: '#1e293b', alignSelf: 'flex-start', borderBottomLeftRadius: 4 },
-  userBubble: { backgroundColor: '#0ea5e9', alignSelf: 'flex-end', borderBottomRightRadius: 4 },
+  botBubble: { backgroundColor: '#243F6A', alignSelf: 'flex-start', borderBottomLeftRadius: 4 },
+  userBubble: { backgroundColor: '#1A6FFF', alignSelf: 'flex-end', borderBottomRightRadius: 4 },
   msgText: { fontSize: 16, lineHeight: 22 },
-  botText: { color: '#f8fafc' },
+  botText: { color: '#F0F8FF' },
   userText: { color: '#ffffff' },
-  inputContainer: { flexDirection: 'row', padding: 15, backgroundColor: '#1e293b', alignItems: 'center' },
-  input: { flex: 1, backgroundColor: '#334155', borderRadius: 20, paddingHorizontal: 15, paddingVertical: 10, color: 'white', fontSize: 16 },
-  sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#0ea5e9', justifyContent: 'center', alignItems: 'center', marginLeft: 10 }
+  inputContainer: { flexDirection: 'row', padding: 15, backgroundColor: '#243F6A', alignItems: 'center' },
+  input: { flex: 1, backgroundColor: '#2E5280', borderRadius: 20, paddingHorizontal: 15, paddingVertical: 10, color: 'white', fontSize: 16 },
+  sendBtn: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#1A6FFF', justifyContent: 'center', alignItems: 'center', marginLeft: 10 }
 });

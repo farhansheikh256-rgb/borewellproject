@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const enquirySchema = new mongoose.Schema({
   name: {
     type: String,
-    required: true,
+    default: 'Unknown (WhatsApp Lead)',
   },
   phone: {
     type: String,
@@ -19,7 +19,7 @@ const enquirySchema = new mongoose.Schema({
   },
   serviceType: {
     type: String,
-    required: true,
+    default: 'General Enquiry',
   },
   description: {
     type: String,

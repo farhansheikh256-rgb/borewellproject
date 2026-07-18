@@ -7,7 +7,7 @@ export default function ServicesScreen() {
   const { services, loading } = useAppContext();
   const router = useRouter();
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item }: { item: any }) => (
     <View style={styles.card}>
       <Text style={styles.name}>{item.name}</Text>
       <Text style={styles.category}>{item.category}</Text>

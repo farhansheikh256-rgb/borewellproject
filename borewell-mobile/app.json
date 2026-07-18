@@ -8,7 +8,7 @@
     "scheme": "borewellmobile56",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon",
+      "icon": "./assets/images/icon.png",
       "bundleIdentifier": "com.anonymous.borewellmobile56"
     },
     "android": {

@@ -10,7 +10,7 @@ export default function HomeScreen() {
     <View style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.hero}>
-          <Text style={styles.title}>Welcome to AquaDrill</Text>
+          <Text style={styles.title}>Welcome to Dr.Water</Text>
           <Text style={styles.subtitle}>Professional Borewell Drilling & Services</Text>
           <TouchableOpacity style={styles.btn} onPress={() => router.push('/book')}>
             <Text style={styles.btnText}>Book a Service</Text>

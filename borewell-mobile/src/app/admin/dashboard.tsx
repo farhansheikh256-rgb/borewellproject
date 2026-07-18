@@ -8,7 +8,7 @@ import * as DocumentPicker from 'expo-document-picker';
 export default function AdminDashboardScreen() {
   const { logout, adminToken } = useAppContext();
   const router = useRouter();
-  const [enquiries, setEnquiries] = useState([]);
+  const [enquiries, setEnquiries] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploadStatus, setUploadStatus] = useState('');
   const [isUploading, setIsUploading] = useState(false);
@@ -25,7 +25,7 @@ export default function AdminDashboardScreen() {
     try {
       const res = await api.get('/enquiries');
       setEnquiries(res.data.data || []);
-    } catch (err) {
+    } catch (err: any) {
       if (err.response?.status === 401) {
         logout();
         router.replace('/admin');
@@ -49,7 +49,7 @@ export default function AdminDashboardScreen() {
         uri: file.uri,
         name: file.name,
         type: file.mimeType || 'application/pdf'
-      });
+      } as any);
 
       const res = await fetch(`${ragApiURL}/upload`, {
         method: 'POST',
@@ -75,7 +75,7 @@ export default function AdminDashboardScreen() {
   const pending = enquiries.filter(e => e.status === 'Pending').length;
   const inProgress = enquiries.filter(e => e.status === 'Under Review').length;
 
-  const renderEnquiry = ({ item }) => (
+  const renderEnquiry = ({ item }: { item: any }) => (
     <View style={styles.eqCard}>
       <Text style={styles.eqName}>{item.name}</Text>
       <Text style={styles.eqText}>{item.serviceType}</Text>

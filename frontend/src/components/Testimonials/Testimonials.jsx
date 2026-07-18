@@ -15,7 +15,7 @@ export default function Testimonials() {
       name: 'Amit Verma',
       location: 'Bhopal, MP',
       initials: 'AV',
-      text: 'AquaDrill installed a submersible pump in our old borewell. It works perfectly now. Highly recommended.'
+      text: 'Dr.Water installed a submersible pump in our old borewell. It works perfectly now. Highly recommended.'
     },
     {
       id: 3,

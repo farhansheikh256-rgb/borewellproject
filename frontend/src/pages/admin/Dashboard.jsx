@@ -75,6 +75,7 @@ export default function Dashboard() {
         <nav>
           <Link to="/admin/dashboard" className={location.pathname === '/admin/dashboard' ? 'active' : ''}>Dashboard</Link>
           <Link to="/admin/enquiries" className={location.pathname === '/admin/enquiries' ? 'active' : ''}>Enquiries</Link>
+          <Link to="/admin/chat-leads" className={location.pathname === '/admin/chat-leads' ? 'active' : ''}>Chat Leads</Link>
           <button onClick={() => { logout(); navigate('/admin'); }}>Logout</button>
         </nav>
       </div>

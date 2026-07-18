@@ -6,7 +6,8 @@ const AppContext = createContext();
 export const AppProvider = ({ children }) => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [adminToken, setAdminToken] = useState(localStorage.getItem('borewell_token'));
+  const [token, setToken] = useState(localStorage.getItem('borewell_token'));
+  const [role, setRole] = useState(localStorage.getItem('borewell_role'));
 
   useEffect(() => {
     fetchServices();
@@ -40,9 +41,11 @@ export const AppProvider = ({ children }) => {
     try {
       const res = await api.post('/auth/login', { username, password });
       if (res.data.success) {
-        setAdminToken(res.data.token);
+        setToken(res.data.token);
+        setRole(res.data.role);
         localStorage.setItem('borewell_token', res.data.token);
-        return { success: true };
+        localStorage.setItem('borewell_role', res.data.role);
+        return { success: true, role: res.data.role };
       }
       return { success: false, message: 'Invalid credentials' };
     } catch (error) {
@@ -51,8 +54,10 @@ export const AppProvider = ({ children }) => {
   };
 
   const logout = () => {
-    setAdminToken(null);
+    setToken(null);
+    setRole(null);
     localStorage.removeItem('borewell_token');
+    localStorage.removeItem('borewell_role');
   };
 
   return (
@@ -61,10 +66,13 @@ export const AppProvider = ({ children }) => {
       loading,
       fetchServices,
       submitEnquiry,
-      adminToken,
+      token,
+      role,
       login,
       logout,
-      isAdmin: !!adminToken
+      isLoggedIn: !!token,
+      isAdmin: token && role === 'admin',
+      isUser: token && role === 'user'
     }}>
       {children}
     </AppContext.Provider>

@@ -17,8 +17,8 @@ export default function ContactScreen() {
       <View style={styles.card}>
         <Ionicons name="mail" size={32} color="#0ea5e9" />
         <Text style={styles.title}>Email</Text>
-        <Text style={styles.desc}>info@aquadrill.com</Text>
-        <Text style={styles.desc}>support@aquadrill.com</Text>
+        <Text style={styles.desc}>info@drwater.com</Text>
+        <Text style={styles.desc}>support@drwater.com</Text>
       </View>
       
       <View style={styles.card}>

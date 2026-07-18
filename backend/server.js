@@ -7,6 +7,8 @@ const errorHandler = require('./src/middleware/errorHandler');
 const enquiryRoutes = require('./src/routes/enquiryRoutes');
 const serviceRoutes = require('./src/routes/serviceRoutes');
 const authRoutes = require('./src/routes/authRoutes');
+const whatsappRoutes = require('./src/routes/whatsappRoutes');
+const chatRoutes = require('./src/routes/chatRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -48,6 +50,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/api/enquiries', enquiryRoutes);
 app.use('/api/services', serviceRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/whatsapp', whatsappRoutes);
+app.use('/api/chat', chatRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -57,6 +61,21 @@ app.get('/api/health', (req, res) => {
 // Error handler
 app.use(errorHandler);
 
-app.listen(PORT, () => {
-  console.log(`🚀 Borewell API Server running on http://localhost:${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  const os = require('os');
+  const interfaces = os.networkInterfaces();
+  let lanIP = 'localhost';
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      if (iface.family === 'IPv4' && !iface.internal) {
+        lanIP = iface.address;
+        break;
+      }
+    }
+    if (lanIP !== 'localhost') break;
+  }
+  console.log(`🚀 Borewell API Server running on:`);
+  console.log(`   Local:   http://localhost:${PORT}`);
+  console.log(`   Network: http://${lanIP}:${PORT}`);
 });
+
