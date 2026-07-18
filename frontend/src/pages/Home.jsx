@@ -232,13 +232,7 @@ function VideoScrollHero() {
             <Link to="/about" className="btn-outline" style={{ padding: '10px 24px', fontSize: '0.9rem', color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}>Learn More</Link>
           </div>
         </div>
-        
-        {/* Wave at bottom */}
-        <div style={{ position: 'absolute', bottom: -1, left: 0, width: '100%', overflow: 'hidden', lineHeight: 0, zIndex: 10 }}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" preserveAspectRatio="none" style={{ display: 'block', width: '100%', height: '50px', fill: 'var(--surface)' }}>
-            <path d="M0,40c0,0 120,-38 250,-38c130,0 345,78 500,78c155,0 250,-30 250,-30l0,50l-1000,0Z" />
-          </svg>
-        </div>
+
       </div>
     );
   }
@@ -345,13 +339,6 @@ function VideoScrollHero() {
               transition: 'all 0.4s ease',
             }} />
           ))}
-        </div>
-
-        {/* Wave at bottom */}
-        <div style={{ position: 'absolute', bottom: -1, left: 0, width: '100%', overflow: 'hidden', lineHeight: 0, zIndex: 10 }}>
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" preserveAspectRatio="none" style={{ display: 'block', width: '100%', height: '70px', fill: 'var(--surface)' }}>
-            <path d="M0,40c0,0 120,-38 250,-38c130,0 345,78 500,78c155,0 250,-30 250,-30l0,50l-1000,0Z" />
-          </svg>
         </div>
       </div>
     </div>
