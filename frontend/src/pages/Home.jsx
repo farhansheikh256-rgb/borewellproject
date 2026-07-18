@@ -21,19 +21,21 @@ export default function Home() {
           alt="Borewell Water Source" 
           style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0 }} 
         />
-        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.8))', zIndex: 1 }}></div>
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'linear-gradient(to bottom, rgba(10,15,28,0.85), rgba(10,15,28,0.95))', zIndex: 1 }}></div>
         
         <div className="container text-center" style={{ position: 'relative', zIndex: 2 }}>
-          <div className="hero-badge" style={{ display: 'inline-block', padding: '6px 16px', border: '1px solid var(--primary)', borderRadius: '30px', color: 'white', background: 'rgba(2, 132, 199, 0.4)', marginBottom: '20px', fontWeight: 'bold', fontSize: '0.9rem', letterSpacing: '1px', textTransform: 'uppercase' }}>
-            Family Owned & Operated Since 1995
+          <div className="hero-badge" style={{ display: 'inline-block', marginBottom: '20px', fontWeight: 'bold', fontSize: '1rem', letterSpacing: '2px', textTransform: 'uppercase', color: 'var(--primary-light)' }}>
+            ADVANCED BOREWELL ENGINEERING
           </div>
-          <h1 className="mb-4" style={{ fontWeight: 800, color: '#fff', textShadow: '0 2px 10px rgba(0,0,0,0.8)', fontSize: '3.5rem', lineHeight: '1.2' }}>
-            From Ground to Life – <br/><span style={{ color: 'var(--primary)' }}>Reliable Borewell Solutions.</span>
+          <h1 className="mb-4 gradient-text-cyan" style={{ fontWeight: 900, fontSize: '4.5rem', lineHeight: '1.1', textShadow: '0 4px 20px rgba(0,229,255,0.2)' }}>
+            We Dig Deep<br/>So You Don't Have To
           </h1>
 
-          <div className="hero-cta-group mt-4" style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
-             <Link to="/contact" className="btn-primary" style={{ padding: '14px 32px', fontSize: '1.1rem' }}>Request Service</Link>
-             <Link to="/about" className="btn-outline" style={{ padding: '14px 32px', fontSize: '1.1rem', color: '#fff', borderColor: '#fff' }}>Learn More</Link>
+          <div style={{ marginTop: '40px' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '10px' }}>
+              SCROLL TO EXPLORE
+            </p>
+            <div style={{ width: '2px', height: '40px', background: 'linear-gradient(to bottom, var(--primary), transparent)', margin: '0 auto' }}></div>
           </div>
         </div>
         
