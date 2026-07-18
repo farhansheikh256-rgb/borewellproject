@@ -8,8 +8,8 @@ export default function ServicesGrid({ services }) {
 
   return (
     <div className="services-grid">
-      {services.map(service => (
-        <ServiceCard key={service._id || service.id} service={service} />
+      {services.map((service, index) => (
+        <ServiceCard key={service._id || service.id} service={service} index={index} />
       ))}
     </div>
   );
