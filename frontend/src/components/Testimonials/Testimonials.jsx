@@ -6,7 +6,7 @@ export default function Testimonials() {
     {
       id: 1,
       name: 'Rahul Sharma',
-      location: 'Indore, MP',
+      location: 'Nagpur, Maharashtra',
       initials: 'RS',
       text: 'Excellent service! The team was highly professional and found water at 400ft just as they predicted.'
     },

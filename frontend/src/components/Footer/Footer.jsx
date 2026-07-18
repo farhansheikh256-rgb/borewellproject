@@ -98,8 +98,8 @@ export default function Footer() {
           <div>
             <h4 className="footer-title">Contact Us</h4>
             <ul className="footer-links">
-              <li>123, Borewell Avenue, Indore, MP</li>
-              <li><a href="tel:+918830251172" style={{ color: 'inherit', textDecoration: 'none' }}>+91 88302 51172</a></li>
+              <li>123, Borewell Avenue, Nagpur, Maharashtra</li>
+              <li><a href="tel:+918855807186" style={{ color: 'inherit', textDecoration: 'none' }}>+91 88558 07186</a></li>
               <li>contact@drwater.in</li>
             </ul>
           </div>

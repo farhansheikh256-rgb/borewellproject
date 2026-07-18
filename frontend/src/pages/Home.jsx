@@ -48,7 +48,7 @@ export default function Home() {
             From Ground to Life – <br/><span style={{ color: 'var(--primary)' }}>Reliable Borewell Solutions.</span>
           </h1>
           <p className="section-subtitle mb-4" style={{ color: '#000000', fontWeight: 600, textShadow: '0 1px 15px rgba(255,255,255,0.9), 0 0 5px rgba(255,255,255,0.5)', fontSize: '1.3rem', maxWidth: '750px', margin: '0 auto', letterSpacing: '0.5px' }}>
-            Serving Indore and the Surrounding Regions. Precision drilling and complete water solutions through the toughest geological formations.
+            Serving Nagpur and the Surrounding Regions. Precision drilling and complete water solutions through the toughest geological formations.
           </p>
           <div className="hero-cta-group mt-4" style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
              <Link to="/contact" className="btn-primary" style={{ padding: '14px 32px', fontSize: '1.1rem' }}>Request Service</Link>
@@ -149,7 +149,7 @@ export default function Home() {
       <section className="py-5" style={{ background: 'var(--surface)' }}>
         <div className="container text-center" style={{ padding: '30px', background: 'rgba(2, 132, 199, 0.05)', borderRadius: '12px', border: '1px solid rgba(2, 132, 199, 0.2)' }}>
            <h3 style={{ color: 'var(--primary)', fontWeight: 800, margin: 0, fontSize: '2rem' }}>Fast Emergency Service Available</h3>
-           <p className="text-muted mt-2 mb-0" style={{ fontSize: '1.2rem' }}>Call us 24/7 at <strong><a href="tel:+918830251172" style={{ color: 'inherit', textDecoration: 'none' }}>+91 88302 51172</a></strong></p>
+           <p className="text-muted mt-2 mb-0" style={{ fontSize: '1.2rem' }}>Call us 24/7 at <strong><a href="tel:+918855807186" style={{ color: 'inherit', textDecoration: 'none' }}>+91 88558 07186</a></strong></p>
         </div>
       </section>
 
@@ -217,7 +217,7 @@ export default function Home() {
                 </h1>
                 
                 <a 
-                  href="tel:+918830251172" 
+                  href="tel:+918855807186" 
                   style={{ 
                     display: 'block',
                     backgroundColor: '#00a35c', 
@@ -231,7 +231,7 @@ export default function Home() {
                   }}
                   onClick={closePopup}
                 >
-                  +91 88302 51172
+                  +91 88558 07186
                 </a>
               </div>
 

@@ -10,7 +10,7 @@ export default function ContactInfo() {
         <FaPhoneAlt />
         <div>
           <h5 className="mb-1">Phone</h5>
-          <p className="text-muted mb-0"><a href="tel:+918830251172" style={{ color: 'inherit', textDecoration: 'none' }}>+91 88302 51172</a></p>
+          <p className="text-muted mb-0"><a href="tel:+918855807186" style={{ color: 'inherit', textDecoration: 'none' }}>+91 88558 07186</a></p>
         </div>
       </div>
       
@@ -26,7 +26,7 @@ export default function ContactInfo() {
         <FaMapMarkerAlt />
         <div>
           <h5 className="mb-1">Address</h5>
-          <p className="text-muted mb-0">123, Borewell Avenue,<br/>Indore, MP 452001</p>
+          <p className="text-muted mb-0">123, Borewell Avenue,<br/>Nagpur, Maharashtra</p>
         </div>
       </div>
       

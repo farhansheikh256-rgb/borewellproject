@@ -7,7 +7,7 @@ const WhatsAppWidget = () => {
   const [message, setMessage] = useState('');
   
   // You can update this to your actual WhatsApp number
-  const whatsappNumber = '918830251172'; 
+  const whatsappNumber = '918855807186'; 
 
   const toggleWidget = () => setIsOpen(!isOpen);
 
@@ -29,7 +29,7 @@ const WhatsAppWidget = () => {
   return (
     <div className="wa-widget-container">
       {/* Phone Floating Button */}
-      <a href="tel:+918830251172" className="phone-widget-button" aria-label="Call Us">
+      <a href="tel:+918855807186" className="phone-widget-button" aria-label="Call Us">
         <FaPhoneAlt className="phone-icon" />
       </a>
 

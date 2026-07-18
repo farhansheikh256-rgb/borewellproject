@@ -44,7 +44,7 @@ export default function PoorQuality() {
         <div className="cta-box text-center" style={{ background: 'linear-gradient(135deg, rgba(2, 132, 199, 0.1), rgba(2, 132, 199, 0.05))', padding: '40px 20px', borderRadius: '15px', border: '1px solid var(--primary)' }}>
           <h3 className="mb-3">Ready for Clean, Clear Water?</h3>
           <p className="mb-4">Stop buying bottled water and protect your home's appliances. Schedule a comprehensive water test with our experts today.</p>
-          <a href="tel:+918830251172" className="btn-primary" style={{ padding: '12px 30px', fontSize: '1.1rem', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+          <a href="tel:+918855807186" className="btn-primary" style={{ padding: '12px 30px', fontSize: '1.1rem', display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
             <FaPhoneAlt /> Book a Water Test
           </a>
         </div>
