@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
-import { FaTimes, FaPhoneAlt } from 'react-icons/fa';
+
 
 import ServicesGrid from '../components/Services/ServicesGrid';
 import HowItWorks from '../components/HowItWorks/HowItWorks';
@@ -10,23 +9,7 @@ import { useAppContext } from '../context/AppContext';
 
 export default function Home() {
   const { services, loading } = useAppContext();
-  const [showPopup, setShowPopup] = useState(false);
-  
-  useEffect(() => {
-    // Check if the popup has already been shown in this session
-    const hasShown = sessionStorage.getItem('emergencyPopupShown');
-    if (!hasShown) {
-      // Small delay for better UX
-      const timer = setTimeout(() => {
-        setShowPopup(true);
-        sessionStorage.setItem('emergencyPopupShown', 'true');
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, []);
 
-  const closePopup = () => setShowPopup(false);
-  
   const popularServices = services.filter(s => s.popular);
 
   return (
@@ -152,127 +135,6 @@ export default function Home() {
            <p className="text-muted mt-2 mb-0" style={{ fontSize: '1.2rem' }}>Call us 24/7 at <strong><a href="tel:+918855807186" style={{ color: 'inherit', textDecoration: 'none' }}>+91 88558 07186</a></strong></p>
         </div>
       </section>
-
-      {/* Emergency Popup */}
-      <AnimatePresence>
-        {showPopup && (
-          <div style={{
-            position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
-            backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 99999,
-            display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px'
-          }}>
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              style={{
-                backgroundColor: 'white',
-                borderRadius: '0px',
-                maxWidth: '550px',
-                width: '100%',
-                position: 'relative',
-                display: 'flex',
-                flexWrap: 'wrap',
-                boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
-                overflow: 'hidden',
-                border: '4px solid #01579b'
-              }}
-            >
-              <button 
-                onClick={closePopup}
-                style={{
-                  position: 'absolute', top: '10px', right: '15px',
-                  background: 'none', border: 'none', fontSize: '24px',
-                  color: '#333', cursor: 'pointer', zIndex: 10
-                }}
-                aria-label="Close"
-              >
-                <FaTimes />
-              </button>
-
-              {/* Left Pane */}
-              <div style={{ 
-                flex: '1 1 250px', 
-                padding: '30px 20px', 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                justifyContent: 'center',
-                textAlign: 'center',
-                backgroundColor: 'white'
-              }}>
-                <h2 style={{ color: '#01579b', fontWeight: 900, marginBottom: '15px', fontSize: '1.6rem', lineHeight: '1.1' }}>
-                  EMERGENCY<br/>SERVICE
-                </h2>
-                
-                <p style={{ fontWeight: 800, fontSize: '0.85rem', color: '#111', margin: '3px 0' }}>
-                  7 DAYS A WEEK FROM 7AM-8PM.
-                </p>
-                <p style={{ fontWeight: 800, fontSize: '0.85rem', color: '#111', margin: '10px 0 15px 0' }}>
-                  PHONES ARE ANSWERED 24/7.
-                </p>
-                
-                <h1 style={{ color: '#00a35c', fontSize: '2.8rem', fontWeight: 900, margin: '0 0 15px 0', transform: 'scaleY(1.3)', textShadow: '1px 1px 0px rgba(0,0,0,0.1)' }}>
-                  CALL NOW!
-                </h1>
-                
-                <a 
-                  href="tel:+918855807186" 
-                  style={{ 
-                    display: 'block',
-                    backgroundColor: '#00a35c', 
-                    color: 'white',
-                    width: '95%', 
-                    padding: '8px', 
-                    fontSize: '1.1rem',
-                    fontWeight: 700,
-                    textDecoration: 'none',
-                    textAlign: 'center'
-                  }}
-                  onClick={closePopup}
-                >
-                  +91 88558 07186
-                </a>
-              </div>
-
-              {/* Right Pane */}
-              <div style={{ 
-                flex: '1 1 250px', 
-                position: 'relative',
-                background: `
-                  linear-gradient(225deg, #01579b 15%, #00a35c 15%, #00a35c 18%, transparent 18%),
-                  linear-gradient(15deg, #01579b 25%, #00a35c 25%, #00a35c 30%, transparent 30%),
-                  white
-                `,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '25px 15px'
-              }}>
-                 <div style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
-                   <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#607d8b', lineHeight: 1 }}>
-                     WE'RE HERE
-                   </div>
-                   <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#01579b', lineHeight: 1, marginBottom: '20px' }}>
-                     TO HELP
-                   </div>
-                   
-                   {/* "No Water" Logo */}
-                   <div style={{ width: '120px', height: '120px', margin: '0 auto', position: 'relative' }}>
-                     <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }}>
-                       <circle cx="50" cy="50" r="45" fill="none" stroke="#00a35c" strokeWidth="10" />
-                       <path d="M50 15 C50 15 25 50 25 65 A 25 25 0 0 0 75 65 C75 50 50 15 50 15 Z" fill="#b3e5fc" stroke="#01579b" strokeWidth="1.5" />
-                       <path d="M45 25 C45 25 30 50 30 65 A 20 20 0 0 0 70 65 C70 50 45 25 45 25 Z" fill="#e1f5fe" />
-                       <line x1="18" y1="82" x2="82" y2="18" stroke="#00a35c" strokeWidth="10" />
-                     </svg>
-                   </div>
-                 </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
