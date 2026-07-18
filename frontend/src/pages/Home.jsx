@@ -87,9 +87,22 @@ function VideoScrollHero() {
   const videoRef = useRef(null);
   const [progress, setProgress] = useState(0);
   const [textPhase, setTextPhase] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Mobile viewport detection
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Smooth scrubber with passive event listening, conditional RAF loop, and seek throttling
   useEffect(() => {
+    if (isMobile) return; // Skip scroll scrub behavior on mobile
+
     let targetProgress = 0;
     let currentProgress = 0;
     let rafId = null;
@@ -158,7 +171,7 @@ function VideoScrollHero() {
       window.removeEventListener('scroll', onScroll);
       if (rafId) cancelAnimationFrame(rafId);
     };
-  }, []);
+  }, [isMobile]);
 
   const textReveal = (show, fromBelow = true) => ({
     position: 'absolute',
@@ -171,6 +184,64 @@ function VideoScrollHero() {
     pointerEvents: show ? 'auto' : 'none',
     textAlign: 'center',
   });
+
+  if (isMobile) {
+    return (
+      <div style={{ position: 'relative', minHeight: '85vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', background: '#0a0f1c' }}>
+        {/* Loop playing background video on mobile */}
+        <video
+          src="/scroll-hero.mp4"
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{
+            position: 'absolute', inset: 0,
+            width: '100%', height: '100%',
+            objectFit: 'cover', zIndex: 1,
+            opacity: 0.6,
+          }}
+        />
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 2,
+          background: 'linear-gradient(to bottom, rgba(10,15,28,0.7), rgba(10,15,28,0.95))',
+        }} />
+        
+        <div className="container text-center" style={{ position: 'relative', zIndex: 3, padding: '40px 15px 20px 15px' }}>
+          <div style={{ fontWeight: 700, fontSize: '0.75rem', letterSpacing: '3px', textTransform: 'uppercase', color: 'var(--primary-light)', marginBottom: '12px' }}>
+            ADVANCED BOREWELL ENGINEERING
+          </div>
+          <h1 className="gradient-text-cyan" style={{ fontWeight: 900, fontSize: '2.1rem', lineHeight: 1.1, marginBottom: '14px' }}>
+            We Dig Deep<br />So You Don't Have To
+          </h1>
+          <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '0.95rem', maxWidth: '480px', margin: '0 auto 20px', lineHeight: 1.5 }}>
+            30+ years of precision drilling and complete water solutions across Nagpur for homes, farms &amp; industries.
+          </p>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', flexWrap: 'wrap', padding: '12px 16px', background: 'rgba(0,229,255,0.05)', border: '1px solid rgba(0,229,255,0.15)', borderRadius: '12px', maxWidth: '480px', margin: '15px auto' }}>
+            {[['2500+', 'CUSTOMERS'], ['30+', 'YEARS EXP.'], ['24/7', 'EMERGENCY']].map(([v, l]) => (
+              <div key={l} style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '1.4rem', fontWeight: 900, color: 'var(--primary)', lineHeight: 1 }}>{v}</div>
+                <div style={{ fontSize: '0.55rem', color: 'var(--text-muted)', marginTop: '2px', letterSpacing: '1px' }}>{l}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '20px' }}>
+            <Link to="/contact" className="btn-primary" style={{ padding: '10px 24px', fontSize: '0.9rem' }}>Request Service</Link>
+            <Link to="/about" className="btn-outline" style={{ padding: '10px 24px', fontSize: '0.9rem', color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}>Learn More</Link>
+          </div>
+        </div>
+        
+        {/* Wave at bottom */}
+        <div style={{ position: 'absolute', bottom: -1, left: 0, width: '100%', overflow: 'hidden', lineHeight: 0, zIndex: 10 }}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" preserveAspectRatio="none" style={{ display: 'block', width: '100%', height: '50px', fill: 'var(--surface)' }}>
+            <path d="M0,40c0,0 120,-38 250,-38c130,0 345,78 500,78c155,0 250,-30 250,-30l0,50l-1000,0Z" />
+          </svg>
+        </div>
+      </div>
+    );
+  }
 
   return (
     // 300vh gives 3 full viewport-heights of scroll travel (2 stages)

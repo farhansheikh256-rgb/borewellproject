@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   StatusBar,
   TouchableOpacity,
+  Linking,
 } from 'react-native';
 import { WebView } from 'react-native-webview';
 import Constants from 'expo-constants';
@@ -66,7 +67,9 @@ export default function RootLayout() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const targetUri = getDevUrl();
+  // Set to true to load the live deployed website in Expo Go / production
+  const isProduction = true; 
+  const targetUri = isProduction ? 'https://borewellproject-one.vercel.app' : getDevUrl();
 
   const injectedJS = `
     let meta = document.querySelector('meta[name="viewport"]');
@@ -139,6 +142,20 @@ export default function RootLayout() {
         <WebView
           ref={webViewRef}
           source={{ uri: targetUri }}
+          // Intercept phone, mail, and WhatsApp links to open natively instead of crashing the WebView
+          onShouldStartLoadWithRequest={(request) => {
+            const { url } = request;
+            if (
+              url.startsWith('tel:') || 
+              url.startsWith('mailto:') || 
+              url.startsWith('whatsapp:') || 
+              url.startsWith('https://wa.me')
+            ) {
+              Linking.openURL(url).catch((err) => console.warn('[Linking] Error opening URL:', err));
+              return false; // Stop loading inside WebView
+            }
+            return true; // Continue loading inside WebView
+          }}
           // JS & storage
           javaScriptEnabled={true}
           injectedJavaScript={injectedJS}
