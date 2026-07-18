@@ -105,7 +105,8 @@ function VideoScrollHero() {
       const now = performance.now();
       // Throttle seeking to max once every 33ms (approx 30fps) to prevent decoding lag
       if (now - lastSeekTime > 33 || Math.abs(progressVal - targetProgress) < 0.001) {
-        vid.currentTime = progressVal * vid.duration;
+        // Map 0.0-1.0 progress to only the first 55% of the video duration (upper two frames)
+        vid.currentTime = progressVal * 0.55 * vid.duration;
         lastSeekTime = now;
       }
     };
@@ -119,9 +120,8 @@ function VideoScrollHero() {
         currentProgress = targetProgress;
         updateVideoTime(currentProgress);
         setProgress(currentProgress);
-        if (currentProgress < 0.35) setTextPhase(0);
-        else if (currentProgress < 0.7) setTextPhase(1);
-        else setTextPhase(2);
+        if (currentProgress < 0.5) setTextPhase(0);
+        else setTextPhase(1);
         
         isLooping = false;
         if (rafId) cancelAnimationFrame(rafId);
@@ -130,9 +130,8 @@ function VideoScrollHero() {
 
       updateVideoTime(currentProgress);
       setProgress(currentProgress);
-      if (currentProgress < 0.35) setTextPhase(0);
-      else if (currentProgress < 0.7) setTextPhase(1);
-      else setTextPhase(2);
+      if (currentProgress < 0.5) setTextPhase(0);
+      else setTextPhase(1);
 
       rafId = requestAnimationFrame(tick);
     };
@@ -174,8 +173,8 @@ function VideoScrollHero() {
   });
 
   return (
-    // 500vh gives 5 full viewport-heights of scroll travel
-    <div ref={containerRef} style={{ height: '500vh', position: 'relative' }}>
+    // 300vh gives 3 full viewport-heights of scroll travel (2 stages)
+    <div ref={containerRef} style={{ height: '300vh', position: 'relative' }}>
       <div style={{
         position: 'sticky', top: 0, height: '100vh',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -235,49 +234,41 @@ function VideoScrollHero() {
           </div>
         </div>
 
-        {/* ── Text Phase 1: Our Mission ── */}
+        {/* ── Text Phase 1: Nagpur, Stats & CTA Combined ── */}
         <div style={textReveal(textPhase === 1, false)}>
           <div style={{ fontWeight: 700, fontSize: '0.8rem', letterSpacing: '5px', textTransform: 'uppercase', color: 'var(--primary-light)', marginBottom: '14px' }}>
             TRUSTED SINCE 1995
           </div>
-          <h1 className="gradient-text-cyan" style={{ fontWeight: 900, fontSize: 'clamp(2.2rem, 5vw, 4.5rem)', lineHeight: 1.1, marginBottom: '16px' }}>
+          <h1 className="gradient-text-cyan" style={{ fontWeight: 900, fontSize: 'clamp(2.2rem, 5vw, 4.2rem)', lineHeight: 1.1, marginBottom: '14px' }}>
             Powering Water<br />Across Nagpur
           </h1>
-          <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '1.15rem', maxWidth: '560px', margin: '0 auto' }}>
+          <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '1.1rem', maxWidth: '560px', margin: '0 auto 20px', lineHeight: 1.6 }}>
             30+ years of precision drilling and complete water solutions for
             <strong style={{ color: 'var(--primary)' }}> homes, farms &amp; industries.</strong>
           </p>
-        </div>
-
-        {/* ── Text Phase 2: CTA ── */}
-        <div style={textReveal(textPhase === 2, false)}>
-          <div style={{ fontWeight: 700, fontSize: '0.8rem', letterSpacing: '5px', textTransform: 'uppercase', color: 'var(--primary-light)', marginBottom: '14px' }}>
-            GET STARTED TODAY
-          </div>
-          <h1 className="gradient-text-cyan" style={{ fontWeight: 900, fontSize: 'clamp(2rem, 5vw, 4rem)', lineHeight: 1.1, marginBottom: '12px' }}>
-            Ready for Reliable<br />Water Supply?
-          </h1>
+          
           {/* Stat pills */}
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '32px', flexWrap: 'wrap', padding: '20px 28px', background: 'rgba(0,229,255,0.05)', border: '1px solid rgba(0,229,255,0.18)', borderRadius: '14px', maxWidth: '580px', margin: '20px auto' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '32px', flexWrap: 'wrap', padding: '15px 24px', background: 'rgba(0,229,255,0.05)', border: '1px solid rgba(0,229,255,0.18)', borderRadius: '12px', maxWidth: '540px', margin: '15px auto' }}>
             {[['2,500+', 'CUSTOMERS'], ['30+', 'YEARS EXP.'], ['24/7', 'EMERGENCY']].map(([v, l]) => (
               <div key={l} style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--primary)', lineHeight: 1 }}>{v}</div>
+                <div style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--primary)', lineHeight: 1 }}>{v}</div>
                 <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '4px', letterSpacing: '1.5px' }}>{l}</div>
               </div>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '8px' }}>
-            <Link to="/contact" className="btn-primary" style={{ padding: '14px 36px', fontSize: '1rem' }}>Request Service</Link>
-            <Link to="/about" className="btn-outline" style={{ padding: '14px 36px', fontSize: '1rem', color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}>Learn More</Link>
+          
+          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '15px' }}>
+            <Link to="/contact" className="btn-primary" style={{ padding: '12px 30px', fontSize: '0.95rem' }}>Request Service</Link>
+            <Link to="/about" className="btn-outline" style={{ padding: '12px 30px', fontSize: '0.95rem', color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}>Learn More</Link>
           </div>
         </div>
 
         {/* Side progress dots */}
         <div style={{ position: 'absolute', right: '28px', top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', gap: '10px', zIndex: 5 }}>
-          {[0, 1, 2].map(i => (
+          {[0, 1].map(i => (
             <div key={i} style={{
               width: '6px',
-              height: i === textPhase ? '28px' : '6px',
+              height: i === textPhase ? '26px' : '6px',
               borderRadius: '3px',
               background: i === textPhase ? 'var(--primary)' : 'rgba(255,255,255,0.2)',
               transition: 'all 0.4s ease',
