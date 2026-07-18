@@ -1,7 +1,12 @@
 import axios from 'axios';
 
+// Automatically use Render backend in production, or localhost in development
+const API_BASE = import.meta.env.MODE === 'production' 
+  ? 'https://borewellproject.onrender.com/api' 
+  : `http://${window.location.hostname}:5005/api`;
+
 const api = axios.create({
-  baseURL: `http://${window.location.hostname}:5005/api`,
+  baseURL: API_BASE,
   headers: {
     'Content-Type': 'application/json',
   },

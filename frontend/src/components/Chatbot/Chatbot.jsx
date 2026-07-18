@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Chatbot.css';
 import { useLocation } from 'react-router-dom';
+import api from '../../utils/api';
 
 export default function Chatbot() {
   const [isOpen, setIsOpen] = useState(false);
@@ -62,18 +63,12 @@ export default function Chatbot() {
 
       try {
         // Send lead to backend API
-        const res = await fetch('/api/enquiries', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: finalName,
-            phone: finalPhone,
-            serviceType: 'General Enquiry',
-            description: 'Lead captured via website chat widget.',
-          })
+        const res = await api.post('/enquiries', {
+          name: finalName,
+          phone: finalPhone,
+          serviceType: 'General Enquiry',
+          description: 'Lead captured via website chat widget.',
         });
-
-        if (!res.ok) throw new Error("Failed to save lead");
 
         setMessages(prev => [...prev, { text: `Thanks ${finalName}! Our team will call you shortly at ${finalPhone}.`, isBot: true }]);
       } catch (error) {
