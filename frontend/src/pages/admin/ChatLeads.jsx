@@ -106,12 +106,11 @@ export default function ChatLeads() {
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button 
-                    onClick={() => handleStatusChange(selectedLead._id, 'Contacted')}
-                    className="btn-accent" 
+                    onClick={() => handleStatusChange(selectedLead._id, selectedLead.status === 'Contacted' ? 'Pending' : 'Contacted')}
+                    className={selectedLead.status === 'Contacted' ? 'btn-outline' : 'btn-accent'}
                     style={{ padding: '0.5rem 1rem' }}
-                    disabled={selectedLead.status === 'Contacted'}
                   >
-                    Mark Contacted
+                    {selectedLead.status === 'Contacted' ? 'Mark Pending' : 'Mark Contacted'}
                   </button>
                   <a 
                     href={`https://wa.me/${selectedLead.phoneNumber.replace(/\D/g, '')}`} 
