@@ -85,36 +85,45 @@ function CountUp({ end, duration = 1800 }) {
 function VideoScrollHero() {
   const containerRef = useRef(null);
   const videoRef = useRef(null);
-  const [progress, setProgress] = useState(0); // 0–1 through the whole scroll zone
-  const [textPhase, setTextPhase] = useState(0); // 0=intro, 1=mid, 2=end
+  const [progress, setProgress] = useState(0);
+  const [textPhase, setTextPhase] = useState(0);
 
-  // Scrub video currentTime from scroll
+  // Smooth scrubber: scroll sets a TARGET, RAF lerps video currentTime toward it
   useEffect(() => {
+    let targetProgress = 0;
+    let currentProgress = 0;
+    let rafId = null;
+    const lerp = (a, b, t) => a + (b - a) * t;
+
+    const tick = () => {
+      // 0.08 = very silky smooth, increase to 0.15 for slightly faster catch-up
+      currentProgress = lerp(currentProgress, targetProgress, 0.08);
+      const vid = videoRef.current;
+      if (vid && vid.duration && !isNaN(vid.duration)) {
+        vid.currentTime = currentProgress * vid.duration;
+      }
+      setProgress(currentProgress);
+      if (currentProgress < 0.35) setTextPhase(0);
+      else if (currentProgress < 0.7) setTextPhase(1);
+      else setTextPhase(2);
+      rafId = requestAnimationFrame(tick);
+    };
+    rafId = requestAnimationFrame(tick);
+
     const onScroll = () => {
       const el = containerRef.current;
-      const vid = videoRef.current;
       if (!el) return;
-
       const rect = el.getBoundingClientRect();
       const totalScroll = el.offsetHeight - window.innerHeight;
-      const scrolled = Math.max(0, -rect.top);
-      const p = Math.min(scrolled / totalScroll, 1);
-      setProgress(p);
-
-      // Set video time
-      if (vid && vid.duration && !isNaN(vid.duration)) {
-        vid.currentTime = p * vid.duration;
-      }
-
-      // Text phases
-      if (p < 0.35) setTextPhase(0);
-      else if (p < 0.7) setTextPhase(1);
-      else setTextPhase(2);
+      targetProgress = Math.min(Math.max(0, -rect.top) / totalScroll, 1);
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      cancelAnimationFrame(rafId);
+    };
   }, []);
 
   const textReveal = (show, fromBelow = true) => ({
