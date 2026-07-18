@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { FaUserCircle, FaPhone, FaHistory, FaCheckCircle, FaSearch } from 'react-icons/fa';
 import api from '../../utils/api';
 import { useAppContext } from '../../context/AppContext';
 
 export default function ChatLeads() {
-  const { adminToken } = useAppContext();
+  const { adminToken, logout } = useAppContext();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [leads, setLeads] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedLead, setSelectedLead] = useState(null);
 
   useEffect(() => {
@@ -40,34 +42,19 @@ export default function ChatLeads() {
 
   return (
     <div className="admin-layout">
-      {/* Mobile Toggle */}
-      <button className="admin-sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)}>
-        ☰ Menu
-      </button>
-
-      {/* Sidebar */}
-      <aside className={`admin-sidebar ${sidebarOpen ? 'open' : ''}`}>
-        <div className="admin-sidebar-logo">
-          <span>DoctorWater Admin</span>
-        </div>
-        <nav className="admin-nav">
-          <div className="admin-nav-section">Main</div>
-          <a href="/admin/dashboard" className="admin-nav-item">📊 Dashboard</a>
-          <a href="/admin/enquiries" className="admin-nav-item">📝 Enquiries</a>
-          <a href="/admin/chat-leads" className="admin-nav-item active">💬 Chat Leads</a>
-          <div className="admin-nav-section" style={{ marginTop: 'auto' }}>Account</div>
-          <a href="/" className="admin-nav-item" style={{ color: 'var(--danger)' }}>🚪 Logout</a>
+      <div className="admin-sidebar">
+        <h3 className="text-accent mb-4">Admin Panel</h3>
+        <nav>
+          <Link to="/admin/dashboard" className={location.pathname === '/admin/dashboard' ? 'active' : ''}>Dashboard</Link>
+          <Link to="/admin/enquiries" className={location.pathname === '/admin/enquiries' ? 'active' : ''}>Enquiries</Link>
+          <Link to="/admin/chat-leads" className={location.pathname === '/admin/chat-leads' ? 'active' : ''}>Chat Leads</Link>
+          <button onClick={() => { logout(); navigate('/admin'); }}>Logout</button>
         </nav>
-      </aside>
+      </div>
 
-      {/* Main Content */}
-      <main className="admin-main">
-        <header className="admin-header">
-          <div>
-            <h1 className="admin-title">Chat Leads</h1>
-            <p style={{ color: 'var(--text-muted)' }}>Manage leads captured by the AI Chatbot</p>
-          </div>
-        </header>
+      <div className="admin-main">
+        <h2 className="mb-4">Chat Leads</h2>
+        <p className="text-muted mb-4">Manage leads captured by the AI Chatbot</p>
 
         {error && <div className="toast toast-error">{error}</div>}
 
@@ -166,7 +153,7 @@ export default function ChatLeads() {
             </div>
           )}
         </div>
-      </main>
+      </div>
     </div>
   );
 }
