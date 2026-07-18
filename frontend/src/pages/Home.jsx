@@ -6,8 +6,8 @@ import HowItWorks from '../components/HowItWorks/HowItWorks';
 import Testimonials from '../components/Testimonials/Testimonials';
 import { useAppContext } from '../context/AppContext';
 
-// ─── Intersection Observer hook for scroll-reveal ─────────────────────────
-function useReveal(options = {}) {
+// ─── Intersection Observer reveal hook ────────────────────────────────────
+function useReveal(delay = 0) {
   const ref = useRef(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
@@ -15,25 +15,31 @@ function useReveal(options = {}) {
     if (!el) return;
     const obs = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setVisible(true); obs.disconnect(); } },
-      { threshold: 0.12, rootMargin: '0px 0px -60px 0px', ...options }
+      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
     );
     obs.observe(el);
     return () => obs.disconnect();
   }, []);
-  return [ref, visible];
+  return [ref, visible, delay];
 }
 
 // ─── Reveal wrapper ────────────────────────────────────────────────────────
 function Reveal({ children, from = 'bottom', delay = 0, style = {} }) {
   const [ref, visible] = useReveal();
-  const translate = { bottom: 'translateY(60px)', left: 'translateX(-60px)', right: 'translateX(60px)', top: 'translateY(-40px)' };
+  const translate = {
+    bottom: 'translateY(60px)',
+    left: 'translateX(-60px)',
+    right: 'translateX(60px)',
+    top: 'translateY(-40px)',
+    fade: 'none',
+  };
   return (
     <div
       ref={ref}
       style={{
         opacity: visible ? 1 : 0,
-        transform: visible ? 'none' : translate[from],
-        transition: `opacity 0.75s ease ${delay}ms, transform 0.75s cubic-bezier(0.22,1,0.36,1) ${delay}ms`,
+        transform: visible ? 'none' : translate[from] || 'translateY(60px)',
+        transition: `opacity 0.75s ease ${delay}ms, transform 0.8s cubic-bezier(0.22,1,0.36,1) ${delay}ms`,
         ...style,
       }}
     >
@@ -43,108 +49,199 @@ function Reveal({ children, from = 'bottom', delay = 0, style = {} }) {
 }
 
 // ─── Animated counter ──────────────────────────────────────────────────────
-function CountUp({ end, suffix = '', duration = 1800 }) {
-  const [ref, visible] = useReveal();
+function CountUp({ end, duration = 1800 }) {
+  const ref = useRef(null);
+  const [visible, setVisible] = useState(false);
   const [count, setCount] = useState(0);
   const started = useRef(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } }, { threshold: 0.1 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
   useEffect(() => {
     if (!visible || started.current) return;
     started.current = true;
     const num = parseInt(end.replace(/\D/g, ''));
-    const start = Date.now();
+    const startT = Date.now();
     const step = () => {
-      const elapsed = Date.now() - start;
-      const progress = Math.min(elapsed / duration, 1);
-      const ease = 1 - Math.pow(1 - progress, 3);
+      const p = Math.min((Date.now() - startT) / duration, 1);
+      const ease = 1 - Math.pow(1 - p, 3);
       setCount(Math.floor(ease * num));
-      if (progress < 1) requestAnimationFrame(step);
+      if (p < 1) requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
   }, [visible, end, duration]);
-  const display = end.includes('+') ? count + '+' : end.includes('/') ? end : count + suffix;
+  const display = end.includes('+') ? count + '+' : count;
   return <span ref={ref}>{display}</span>;
 }
 
-// ─── Scroll-driven Hero (sticky 2-phase) ──────────────────────────────────
-function ScrollHero() {
+// ─── Scroll-scrubbed Video Hero ────────────────────────────────────────────
+// The video plays frame-by-frame as you scroll — just like Apple's website.
+// Container is 500vh tall. The sticky inner panel holds the video.
+// Overlay text fades in/out at different scroll points.
+function VideoScrollHero() {
   const containerRef = useRef(null);
-  const [phase, setPhase] = useState(0);
+  const videoRef = useRef(null);
+  const [progress, setProgress] = useState(0); // 0–1 through the whole scroll zone
+  const [textPhase, setTextPhase] = useState(0); // 0=intro, 1=mid, 2=end
 
+  // Scrub video currentTime from scroll
   useEffect(() => {
     const onScroll = () => {
       const el = containerRef.current;
+      const vid = videoRef.current;
       if (!el) return;
-      const scrolled = -el.getBoundingClientRect().top;
-      setPhase(scrolled < window.innerHeight * 0.5 ? 0 : 1);
+
+      const rect = el.getBoundingClientRect();
+      const totalScroll = el.offsetHeight - window.innerHeight;
+      const scrolled = Math.max(0, -rect.top);
+      const p = Math.min(scrolled / totalScroll, 1);
+      setProgress(p);
+
+      // Set video time
+      if (vid && vid.duration && !isNaN(vid.duration)) {
+        vid.currentTime = p * vid.duration;
+      }
+
+      // Text phases
+      if (p < 0.35) setTextPhase(0);
+      else if (p < 0.7) setTextPhase(1);
+      else setTextPhase(2);
     };
+
     window.addEventListener('scroll', onScroll, { passive: true });
     onScroll();
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const slide = (show, fromBelow = false) => ({
-    position: 'absolute', zIndex: 2,
+  const textReveal = (show, fromBelow = true) => ({
+    position: 'absolute',
+    zIndex: 4,
+    width: '100%',
+    padding: '0 20px',
     opacity: show ? 1 : 0,
-    transform: show ? 'translateY(0)' : `translateY(${fromBelow ? '60px' : '-60px'})`,
-    transition: 'opacity 0.85s ease, transform 0.85s cubic-bezier(0.22,1,0.36,1)',
+    transform: show ? 'translateY(0)' : `translateY(${fromBelow ? '40px' : '-40px'})`,
+    transition: 'opacity 0.6s ease, transform 0.7s cubic-bezier(0.22,1,0.36,1)',
     pointerEvents: show ? 'auto' : 'none',
-    padding: '0 20px', width: '100%',
+    textAlign: 'center',
   });
 
   return (
-    <div ref={containerRef} style={{ height: '200vh', position: 'relative' }}>
-      <div style={{ position: 'sticky', top: 0, height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-        {/* BG image */}
-        <img src="/hero-bg.png" alt="Borewell" style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', zIndex: 0, transform: phase >= 1 ? 'scale(1.07)' : 'scale(1)', transition: 'transform 1.2s cubic-bezier(0.4,0,0.2,1)' }} />
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(10,15,28,0.88), rgba(10,15,28,0.97))', zIndex: 1 }} />
-        {/* Glow orb */}
-        <div style={{ position: 'absolute', width: phase >= 1 ? '900px' : '500px', height: phase >= 1 ? '900px' : '500px', borderRadius: '50%', background: 'radial-gradient(circle, rgba(0,229,255,0.07) 0%, transparent 70%)', top: '50%', left: '50%', transform: 'translate(-50%,-50%)', transition: 'width 1.2s ease, height 1.2s ease', zIndex: 1, pointerEvents: 'none' }} />
+    // 500vh gives 5 full viewport-heights of scroll travel
+    <div ref={containerRef} style={{ height: '500vh', position: 'relative' }}>
+      <div style={{
+        position: 'sticky', top: 0, height: '100vh',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        overflow: 'hidden', background: '#0a0f1c',
+      }}>
 
-        {/* Phase 0 */}
-        <div className="container text-center" style={slide(phase === 0)}>
-          <div style={{ fontWeight: 700, fontSize: '0.8rem', letterSpacing: '4px', textTransform: 'uppercase', color: 'var(--primary-light)', marginBottom: '16px' }}>
+        {/* ── Full-screen video (paused, scrubbed by scroll) ── */}
+        <video
+          ref={videoRef}
+          src="/scroll-hero.mp4"
+          muted
+          playsInline
+          preload="auto"
+          style={{
+            position: 'absolute', inset: 0,
+            width: '100%', height: '100%',
+            objectFit: 'cover', zIndex: 1,
+            opacity: 0.75,
+          }}
+        />
+
+        {/* Dark gradient overlay */}
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 2,
+          background: `linear-gradient(
+            to bottom,
+            rgba(10,15,28,0.65) 0%,
+            rgba(10,15,28,0.4) 40%,
+            rgba(10,15,28,0.75) 100%
+          )`,
+        }} />
+
+        {/* Scroll progress bar */}
+        <div style={{
+          position: 'absolute', bottom: 0, left: 0,
+          height: '3px', zIndex: 10,
+          width: `${progress * 100}%`,
+          background: 'var(--primary)',
+          transition: 'width 0.1s linear',
+          boxShadow: '0 0 10px rgba(0,229,255,0.6)',
+        }} />
+
+        {/* ── Text Phase 0: Welcome ── */}
+        <div style={textReveal(textPhase === 0)}>
+          <div style={{ fontWeight: 700, fontSize: '0.8rem', letterSpacing: '5px', textTransform: 'uppercase', color: 'var(--primary-light)', marginBottom: '16px' }}>
             ADVANCED BOREWELL ENGINEERING
           </div>
-          <h1 className="gradient-text-cyan" style={{ fontWeight: 900, fontSize: 'clamp(2.5rem, 7vw, 5.5rem)', lineHeight: '1.05', marginBottom: '48px' }}>
+          <h1 className="gradient-text-cyan" style={{ fontWeight: 900, fontSize: 'clamp(2.5rem, 7vw, 5.5rem)', lineHeight: 1.05, marginBottom: '20px' }}>
             We Dig Deep<br />So You Don't Have To
           </h1>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-            <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', letterSpacing: '3px', textTransform: 'uppercase', margin: 0 }}>SCROLL TO EXPLORE</p>
+          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '1.1rem', maxWidth: '500px', margin: '0 auto 40px' }}>
+            Scroll to explore our story
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', letterSpacing: '3px', textTransform: 'uppercase', margin: 0 }}>SCROLL DOWN</p>
             <div style={{ width: '1px', height: '50px', background: 'linear-gradient(to bottom, var(--primary), transparent)', animation: 'heroPulse 1.8s ease-in-out infinite' }} />
           </div>
         </div>
 
-        {/* Phase 1 */}
-        <div className="container text-center" style={slide(phase === 1, true)}>
-          <div style={{ fontWeight: 700, fontSize: '0.8rem', letterSpacing: '4px', textTransform: 'uppercase', color: 'var(--primary-light)', marginBottom: '14px' }}>TRUSTED SINCE 1995</div>
-          <h1 className="gradient-text-cyan" style={{ fontWeight: 900, fontSize: 'clamp(2.2rem, 5vw, 4rem)', lineHeight: '1.1', marginBottom: '16px' }}>
+        {/* ── Text Phase 1: Our Mission ── */}
+        <div style={textReveal(textPhase === 1, false)}>
+          <div style={{ fontWeight: 700, fontSize: '0.8rem', letterSpacing: '5px', textTransform: 'uppercase', color: 'var(--primary-light)', marginBottom: '14px' }}>
+            TRUSTED SINCE 1995
+          </div>
+          <h1 className="gradient-text-cyan" style={{ fontWeight: 900, fontSize: 'clamp(2.2rem, 5vw, 4.5rem)', lineHeight: 1.1, marginBottom: '16px' }}>
             Powering Water<br />Across Nagpur
           </h1>
-          <p style={{ color: '#cbd5e1', fontSize: '1.1rem', maxWidth: '560px', margin: '0 auto 28px', lineHeight: 1.7 }}>
-            30+ years of precision drilling and complete water solutions for <strong style={{ color: 'var(--primary)' }}>homes, farms &amp; industries.</strong>
+          <p style={{ color: 'rgba(255,255,255,0.75)', fontSize: '1.15rem', maxWidth: '560px', margin: '0 auto' }}>
+            30+ years of precision drilling and complete water solutions for
+            <strong style={{ color: 'var(--primary)' }}> homes, farms &amp; industries.</strong>
           </p>
-          <div style={{ display: 'flex', justifyContent: 'center', gap: '48px', flexWrap: 'wrap', padding: '22px 32px', background: 'rgba(0,229,255,0.05)', border: '1px solid rgba(0,229,255,0.15)', borderRadius: '14px', maxWidth: '620px', margin: '0 auto 28px' }}>
+        </div>
+
+        {/* ── Text Phase 2: CTA ── */}
+        <div style={textReveal(textPhase === 2, false)}>
+          <div style={{ fontWeight: 700, fontSize: '0.8rem', letterSpacing: '5px', textTransform: 'uppercase', color: 'var(--primary-light)', marginBottom: '14px' }}>
+            GET STARTED TODAY
+          </div>
+          <h1 className="gradient-text-cyan" style={{ fontWeight: 900, fontSize: 'clamp(2rem, 5vw, 4rem)', lineHeight: 1.1, marginBottom: '12px' }}>
+            Ready for Reliable<br />Water Supply?
+          </h1>
+          {/* Stat pills */}
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '32px', flexWrap: 'wrap', padding: '20px 28px', background: 'rgba(0,229,255,0.05)', border: '1px solid rgba(0,229,255,0.18)', borderRadius: '14px', maxWidth: '580px', margin: '20px auto' }}>
             {[['2,500+', 'CUSTOMERS'], ['30+', 'YEARS EXP.'], ['24/7', 'EMERGENCY']].map(([v, l]) => (
               <div key={l} style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '2.4rem', fontWeight: 900, color: 'var(--primary)', lineHeight: 1 }}>{v}</div>
-                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '5px', letterSpacing: '1.5px' }}>{l}</div>
+                <div style={{ fontSize: '2.2rem', fontWeight: 900, color: 'var(--primary)', lineHeight: 1 }}>{v}</div>
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginTop: '4px', letterSpacing: '1.5px' }}>{l}</div>
               </div>
             ))}
           </div>
-          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/contact" className="btn-primary" style={{ padding: '13px 34px' }}>Request Service</Link>
-            <Link to="/about" className="btn-outline" style={{ padding: '13px 34px', color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}>Learn More</Link>
+          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap', marginTop: '8px' }}>
+            <Link to="/contact" className="btn-primary" style={{ padding: '14px 36px', fontSize: '1rem' }}>Request Service</Link>
+            <Link to="/about" className="btn-outline" style={{ padding: '14px 36px', fontSize: '1rem', color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}>Learn More</Link>
           </div>
         </div>
 
-        {/* Progress dots */}
+        {/* Side progress dots */}
         <div style={{ position: 'absolute', right: '28px', top: '50%', transform: 'translateY(-50%)', display: 'flex', flexDirection: 'column', gap: '10px', zIndex: 5 }}>
-          {[0, 1].map(i => (
-            <div key={i} style={{ width: '6px', height: i === phase ? '26px' : '6px', borderRadius: '3px', background: i === phase ? 'var(--primary)' : 'rgba(255,255,255,0.2)', transition: 'all 0.4s ease' }} />
+          {[0, 1, 2].map(i => (
+            <div key={i} style={{
+              width: '6px',
+              height: i === textPhase ? '28px' : '6px',
+              borderRadius: '3px',
+              background: i === textPhase ? 'var(--primary)' : 'rgba(255,255,255,0.2)',
+              transition: 'all 0.4s ease',
+            }} />
           ))}
         </div>
 
-        {/* Wave */}
+        {/* Wave at bottom */}
         <div style={{ position: 'absolute', bottom: -1, left: 0, width: '100%', overflow: 'hidden', lineHeight: 0, zIndex: 10 }}>
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" preserveAspectRatio="none" style={{ display: 'block', width: '100%', height: '70px', fill: 'var(--surface)' }}>
             <path d="M0,40c0,0 120,-38 250,-38c130,0 345,78 500,78c155,0 250,-30 250,-30l0,50l-1000,0Z" />
@@ -162,8 +259,8 @@ export default function Home() {
 
   return (
     <div>
-      {/* ══ HERO ══════════════════════════════════════════════════════════ */}
-      <ScrollHero />
+      {/* ══ VIDEO SCROLL HERO (500vh sticky) ══════════════════════════════ */}
+      <VideoScrollHero />
 
       <div style={{ position: 'relative', zIndex: 1, background: 'var(--surface)' }}>
 
@@ -175,11 +272,7 @@ export default function Home() {
               <p className="section-subtitle">A wide range of borewell and water solutions for residential, commercial, and agricultural needs.</p>
             </Reveal>
             <div style={{ marginTop: '40px' }}>
-              {loading ? (
-                <p className="text-center">Loading services...</p>
-              ) : (
-                <ServicesGrid services={popularServices} />
-              )}
+              {loading ? <p className="text-center">Loading services...</p> : <ServicesGrid services={popularServices} />}
             </div>
           </div>
         </section>
@@ -196,17 +289,13 @@ export default function Home() {
               </Reveal>
               <Reveal from="bottom" delay={150}>
                 <div className="text-center">
-                  <h2 style={{ fontSize: '3.5rem', fontWeight: 900, margin: 0, lineHeight: 1 }}>
-                    <CountUp end="2500+" />
-                  </h2>
+                  <h2 style={{ fontSize: '3.5rem', fontWeight: 900, margin: 0, lineHeight: 1 }}><CountUp end="2500+" /></h2>
                   <h6 style={{ fontSize: '1.1rem', opacity: 0.9, marginTop: '8px', fontWeight: 500 }}>Customers Served</h6>
                 </div>
               </Reveal>
               <Reveal from="right" delay={300}>
                 <div className="text-center">
-                  <h2 style={{ fontSize: '3.5rem', fontWeight: 900, margin: 0, lineHeight: 1 }}>
-                    <CountUp end="30+" />
-                  </h2>
+                  <h2 style={{ fontSize: '3.5rem', fontWeight: 900, margin: 0, lineHeight: 1 }}><CountUp end="30+" /></h2>
                   <h6 style={{ fontSize: '1.1rem', opacity: 0.9, marginTop: '8px', fontWeight: 500 }}>Years Experience</h6>
                 </div>
               </Reveal>
@@ -222,9 +311,9 @@ export default function Home() {
                 <div>
                   <h2 style={{ fontSize: '2.5rem', fontWeight: 800, color: 'var(--text)', marginBottom: '24px' }}>Why Choose Us?</h2>
                   <ul style={{ listStyle: 'none', padding: 0, lineHeight: '2.4', color: 'var(--text)' }}>
-                    {['100% Satisfaction Guarantee', 'Fast Response Time', 'Knowledgeable & Skillful Staff', 'Excellent Customer Service', 'Reliable & Professional', '24/7 Emergency Service', 'Fair & Transparent Pricing', 'Comprehensive Services'].map((item, i) => (
-                      <li key={item} style={{ display: 'flex', alignItems: 'center', gap: '12px', animation: `none` }}>
-                        <span style={{ color: 'var(--primary)', fontWeight: 700, fontSize: '1.1rem' }}>✓</span>
+                    {['100% Satisfaction Guarantee', 'Fast Response Time', 'Knowledgeable & Skillful Staff', 'Excellent Customer Service', 'Reliable & Professional', '24/7 Emergency Service', 'Fair & Transparent Pricing', 'Comprehensive Services'].map(item => (
+                      <li key={item} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <span style={{ color: 'var(--primary)', fontWeight: 700 }}>✓</span>
                         <span>{item}</span>
                       </li>
                     ))}
@@ -252,9 +341,7 @@ export default function Home() {
               <h2 className="section-title text-center">How It Works</h2>
               <p className="section-subtitle text-center">Our streamlined process ensures a hassle-free experience from booking to water supply.</p>
             </Reveal>
-            <Reveal from="bottom" delay={150}>
-              <HowItWorks />
-            </Reveal>
+            <Reveal from="bottom" delay={150}><HowItWorks /></Reveal>
           </div>
         </section>
 
@@ -265,9 +352,7 @@ export default function Home() {
               <h2 className="section-title">Don't Take Our Word For It</h2>
               <p className="section-subtitle mb-5">Read reviews from our satisfied clients across the region.</p>
             </Reveal>
-            <Reveal from="bottom" delay={100}>
-              <Testimonials />
-            </Reveal>
+            <Reveal from="bottom" delay={100}><Testimonials /></Reveal>
           </div>
         </section>
 
