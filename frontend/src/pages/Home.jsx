@@ -168,7 +168,7 @@ export default function Home() {
               style={{
                 backgroundColor: 'white',
                 borderRadius: '0px',
-                maxWidth: '750px',
+                maxWidth: '550px',
                 width: '100%',
                 position: 'relative',
                 display: 'flex',
@@ -192,8 +192,8 @@ export default function Home() {
 
               {/* Left Pane */}
               <div style={{ 
-                flex: '1 1 300px', 
-                padding: '50px 30px', 
+                flex: '1 1 250px', 
+                padding: '30px 20px', 
                 display: 'flex', 
                 flexDirection: 'column', 
                 alignItems: 'center', 
@@ -201,18 +201,18 @@ export default function Home() {
                 textAlign: 'center',
                 backgroundColor: 'white'
               }}>
-                <h2 style={{ color: '#01579b', fontWeight: 900, marginBottom: '25px', fontSize: '2.2rem', lineHeight: '1.1' }}>
+                <h2 style={{ color: '#01579b', fontWeight: 900, marginBottom: '15px', fontSize: '1.6rem', lineHeight: '1.1' }}>
                   EMERGENCY<br/>SERVICE
                 </h2>
                 
-                <p style={{ fontWeight: 800, fontSize: '1rem', color: '#111', margin: '5px 0' }}>
+                <p style={{ fontWeight: 800, fontSize: '0.85rem', color: '#111', margin: '3px 0' }}>
                   7 DAYS A WEEK FROM 7AM-8PM.
                 </p>
-                <p style={{ fontWeight: 800, fontSize: '1rem', color: '#111', margin: '15px 0 25px 0' }}>
+                <p style={{ fontWeight: 800, fontSize: '0.85rem', color: '#111', margin: '10px 0 15px 0' }}>
                   PHONES ARE ANSWERED 24/7.
                 </p>
                 
-                <h1 style={{ color: '#00a35c', fontSize: '4rem', fontWeight: 900, margin: '0 0 20px 0', transform: 'scaleY(1.5)', textShadow: '1px 1px 0px rgba(0,0,0,0.1)' }}>
+                <h1 style={{ color: '#00a35c', fontSize: '2.8rem', fontWeight: 900, margin: '0 0 15px 0', transform: 'scaleY(1.3)', textShadow: '1px 1px 0px rgba(0,0,0,0.1)' }}>
                   CALL NOW!
                 </h1>
                 
@@ -222,9 +222,9 @@ export default function Home() {
                     display: 'block',
                     backgroundColor: '#00a35c', 
                     color: 'white',
-                    width: '90%', 
-                    padding: '12px', 
-                    fontSize: '1.4rem',
+                    width: '95%', 
+                    padding: '8px', 
+                    fontSize: '1.1rem',
                     fontWeight: 700,
                     textDecoration: 'none',
                     textAlign: 'center'
@@ -237,7 +237,7 @@ export default function Home() {
 
               {/* Right Pane */}
               <div style={{ 
-                flex: '1 1 300px', 
+                flex: '1 1 250px', 
                 position: 'relative',
                 background: `
                   linear-gradient(225deg, #01579b 15%, #00a35c 15%, #00a35c 18%, transparent 18%),
@@ -248,18 +248,18 @@ export default function Home() {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                padding: '40px 20px'
+                padding: '25px 15px'
               }}>
                  <div style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
-                   <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#607d8b', lineHeight: 1 }}>
+                   <div style={{ fontSize: '1.3rem', fontWeight: 800, color: '#607d8b', lineHeight: 1 }}>
                      WE'RE HERE
                    </div>
-                   <div style={{ fontSize: '3rem', fontWeight: 900, color: '#01579b', lineHeight: 1, marginBottom: '30px' }}>
+                   <div style={{ fontSize: '2.2rem', fontWeight: 900, color: '#01579b', lineHeight: 1, marginBottom: '20px' }}>
                      TO HELP
                    </div>
                    
                    {/* "No Water" Logo */}
-                   <div style={{ width: '180px', height: '180px', margin: '0 auto', position: 'relative' }}>
+                   <div style={{ width: '120px', height: '120px', margin: '0 auto', position: 'relative' }}>
                      <svg viewBox="0 0 100 100" style={{ width: '100%', height: '100%' }}>
                        <circle cx="50" cy="50" r="45" fill="none" stroke="#00a35c" strokeWidth="10" />
                        <path d="M50 15 C50 15 25 50 25 65 A 25 25 0 0 0 75 65 C75 50 50 15 50 15 Z" fill="#b3e5fc" stroke="#01579b" strokeWidth="1.5" />
