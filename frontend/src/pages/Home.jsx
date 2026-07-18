@@ -6,200 +6,182 @@ import HowItWorks from '../components/HowItWorks/HowItWorks';
 import Testimonials from '../components/Testimonials/Testimonials';
 import { useAppContext } from '../context/AppContext';
 
-// Scroll-pinned hero – 2 scroll phases
+// Scroll-driven hero – uses native scroll position, no wheel interception
 function ScrollHero() {
-  const [phase, setPhase] = useState(0); // 0=intro, 1=stats, 2=released
-  const phaseRef = useRef(0);
-  const lockedRef = useRef(true);
+  const containerRef = useRef(null);
+  const [phase, setPhase] = useState(0); // 0 = intro, 1 = stats
 
   useEffect(() => {
-    // Keep ref in sync so wheel handler always has fresh value
-    phaseRef.current = phase;
-  }, [phase]);
-
-  useEffect(() => {
-    const onWheel = (e) => {
-      if (!lockedRef.current) return;
-      e.preventDefault();
-      const dir = e.deltaY > 0 ? 1 : -1;
-      const cur = phaseRef.current;
-      const next = Math.max(0, Math.min(2, cur + dir));
-      if (next !== cur) {
-        if (next === 2) {
-          // Phase 2 → release lock so normal scroll works
-          lockedRef.current = false;
-        }
-        setPhase(next);
-        phaseRef.current = next;
+    const onScroll = () => {
+      const container = containerRef.current;
+      if (!container) return;
+      const { top } = container.getBoundingClientRect();
+      const scrolled = -top; // how many px have scrolled past the top of this container
+      const vh = window.innerHeight;
+      // Phase 0: 0–1vh, Phase 1: 1vh–2vh
+      if (scrolled < vh * 0.5) {
+        setPhase(0);
+      } else {
+        setPhase(1);
       }
     };
 
-    // Touch support
-    let touchStartY = 0;
-    const onTouchStart = (e) => { touchStartY = e.touches[0].clientY; };
-    const onTouchMove = (e) => {
-      if (!lockedRef.current) return;
-      e.preventDefault();
-      const dy = touchStartY - e.touches[0].clientY;
-      if (Math.abs(dy) < 30) return;
-      touchStartY = e.touches[0].clientY;
-      const dir = dy > 0 ? 1 : -1;
-      const cur = phaseRef.current;
-      const next = Math.max(0, Math.min(2, cur + dir));
-      if (next !== cur) {
-        if (next === 2) lockedRef.current = false;
-        setPhase(next);
-        phaseRef.current = next;
-      }
-    };
-
-    window.addEventListener('wheel', onWheel, { passive: false });
-    window.addEventListener('touchstart', onTouchStart, { passive: true });
-    window.addEventListener('touchmove', onTouchMove, { passive: false });
-    return () => {
-      window.removeEventListener('wheel', onWheel);
-      window.removeEventListener('touchstart', onTouchStart);
-      window.removeEventListener('touchmove', onTouchMove);
-    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll(); // run once on mount
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  // When phase=2, scroll body back to top of next section smoothly
-  useEffect(() => {
-    if (phase === 2) {
-      const nextSection = document.getElementById('main-content');
-      if (nextSection) {
-        nextSection.scrollIntoView({ behavior: 'smooth' });
-      }
-    }
-  }, [phase]);
-
   return (
-    <div style={{ position: 'relative', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-      {/* Background image */}
-      <img
-        src="/hero-bg.png"
-        alt="Borewell"
-        style={{
-          position: 'absolute', top: 0, left: 0,
-          width: '100%', height: '100%', objectFit: 'cover', zIndex: 0,
-          transform: phase >= 1 ? 'scale(1.06)' : 'scale(1)',
-          transition: 'transform 1.2s cubic-bezier(0.4, 0, 0.2, 1)',
-        }}
-      />
-      {/* Dark overlay */}
+    // Tall container = 2 scroll steps (200vh). Sticky inner panel stays in view.
+    <div ref={containerRef} style={{ height: '200vh', position: 'relative' }}>
       <div style={{
-        position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-        background: 'linear-gradient(to bottom, rgba(10,15,28,0.88), rgba(10,15,28,0.97))',
-        zIndex: 1, transition: 'opacity 0.8s',
-      }} />
-      {/* Glow orb */}
-      <div style={{
-        position: 'absolute',
-        width: phase >= 1 ? '700px' : '500px', height: phase >= 1 ? '700px' : '500px',
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(0,229,255,0.07) 0%, transparent 70%)',
-        top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-        transition: 'width 1.2s ease, height 1.2s ease',
-        zIndex: 1, pointerEvents: 'none',
-      }} />
-
-      {/* ---- PHASE 0: Intro ---- */}
-      <div className="container text-center" style={{
-        position: 'absolute', zIndex: 2,
-        opacity: phase === 0 ? 1 : 0,
-        transform: phase === 0 ? 'translateY(0px)' : 'translateY(-70px)',
-        transition: 'opacity 0.7s ease, transform 0.7s cubic-bezier(0.4,0,0.2,1)',
-        pointerEvents: phase === 0 ? 'auto' : 'none',
+        position: 'sticky', top: 0, height: '100vh',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        overflow: 'hidden',
       }}>
-        <div style={{ display: 'inline-block', marginBottom: '18px', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '4px', textTransform: 'uppercase', color: 'var(--primary-light)' }}>
-          ADVANCED BOREWELL ENGINEERING
-        </div>
-        <h1 className="gradient-text-cyan" style={{ fontWeight: 900, fontSize: 'clamp(2.8rem, 7vw, 5.5rem)', lineHeight: '1.05', marginBottom: '50px' }}>
-          We Dig Deep<br />So You Don't Have To
-        </h1>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', letterSpacing: '3px', textTransform: 'uppercase', margin: 0 }}>
-            SCROLL TO EXPLORE
-          </p>
-          <div style={{ width: '1px', height: '50px', background: 'linear-gradient(to bottom, var(--primary), transparent)' }} />
-        </div>
-      </div>
-
-      {/* ---- PHASE 1: Stats & CTA ---- */}
-      <div className="container text-center" style={{
-        position: 'absolute', zIndex: 2,
-        opacity: phase === 1 ? 1 : 0,
-        transform: phase === 1 ? 'translateY(0px)' : (phase === 0 ? 'translateY(80px)' : 'translateY(-70px)'),
-        transition: 'opacity 0.7s ease, transform 0.7s cubic-bezier(0.4,0,0.2,1)',
-        pointerEvents: phase === 1 ? 'auto' : 'none',
-      }}>
-        <div style={{ display: 'inline-block', marginBottom: '18px', fontWeight: 700, fontSize: '0.8rem', letterSpacing: '4px', textTransform: 'uppercase', color: 'var(--primary-light)' }}>
-          TRUSTED SINCE 1995
-        </div>
-        <h1 className="gradient-text-cyan" style={{ fontWeight: 900, fontSize: 'clamp(2.4rem, 5.5vw, 4.2rem)', lineHeight: '1.1', marginBottom: '18px' }}>
-          Powering Water<br />Across Nagpur
-        </h1>
-        <p style={{ color: '#cbd5e1', fontSize: '1.1rem', maxWidth: '580px', margin: '0 auto 36px', lineHeight: 1.7 }}>
-          30+ years of precision drilling and complete water solutions for{' '}
-          <strong style={{ color: 'var(--primary)' }}>homes, farms &amp; industries.</strong>
-        </p>
-
-        {/* Stats */}
+        {/* Background image */}
+        <img
+          src="/hero-bg.png"
+          alt="Borewell"
+          style={{
+            position: 'absolute', top: 0, left: 0,
+            width: '100%', height: '100%', objectFit: 'cover', zIndex: 0,
+            transform: phase >= 1 ? 'scale(1.06)' : 'scale(1)',
+            transition: 'transform 1s cubic-bezier(0.4, 0, 0.2, 1)',
+          }}
+        />
+        {/* Dark overlay */}
         <div style={{
-          display: 'flex', justifyContent: 'center', gap: '48px', flexWrap: 'wrap',
-          padding: '24px 32px',
-          background: 'rgba(0,229,255,0.05)',
-          border: '1px solid rgba(0,229,255,0.15)',
-          borderRadius: '14px',
-          maxWidth: '640px', margin: '0 auto 36px',
+          position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+          background: 'linear-gradient(to bottom, rgba(10,15,28,0.88), rgba(10,15,28,0.97))',
+          zIndex: 1,
+        }} />
+        {/* Cyan glow orb */}
+        <div style={{
+          position: 'absolute',
+          width: phase >= 1 ? '800px' : '500px',
+          height: phase >= 1 ? '800px' : '500px',
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(0,229,255,0.07) 0%, transparent 70%)',
+          top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+          transition: 'width 1s ease, height 1s ease',
+          zIndex: 1, pointerEvents: 'none',
+        }} />
+
+        {/* ---- PHASE 0: Intro ---- */}
+        <div className="container text-center" style={{
+          position: 'absolute', zIndex: 2,
+          opacity: phase === 0 ? 1 : 0,
+          transform: phase === 0 ? 'translateY(0px)' : 'translateY(-60px)',
+          transition: 'opacity 0.8s ease, transform 0.8s cubic-bezier(0.4,0,0.2,1)',
+          pointerEvents: phase === 0 ? 'auto' : 'none',
+          padding: '0 20px',
         }}>
-          {[['2,500+', 'CUSTOMERS SERVED'], ['30+', 'YEARS EXPERIENCE'], ['24/7', 'EMERGENCY']].map(([val, label]) => (
-            <div key={label} style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '2.5rem', fontWeight: 900, color: 'var(--primary)', lineHeight: 1 }}>{val}</div>
-              <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '5px', letterSpacing: '1.5px' }}>{label}</div>
-            </div>
+          <div style={{
+            display: 'inline-block', marginBottom: '18px',
+            fontWeight: 700, fontSize: '0.8rem', letterSpacing: '4px',
+            textTransform: 'uppercase', color: 'var(--primary-light)',
+          }}>
+            ADVANCED BOREWELL ENGINEERING
+          </div>
+          <h1 className="gradient-text-cyan" style={{
+            fontWeight: 900,
+            fontSize: 'clamp(2.5rem, 7vw, 5.5rem)',
+            lineHeight: '1.05', marginBottom: '50px',
+          }}>
+            We Dig Deep<br />So You Don't Have To
+          </h1>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.75rem', letterSpacing: '3px', textTransform: 'uppercase', margin: 0 }}>
+              SCROLL TO EXPLORE
+            </p>
+            <div style={{ width: '1px', height: '50px', background: 'linear-gradient(to bottom, var(--primary), transparent)', animation: 'heroPulse 2s ease-in-out infinite' }} />
+          </div>
+        </div>
+
+        {/* ---- PHASE 1: Stats & CTA ---- */}
+        <div className="container text-center" style={{
+          position: 'absolute', zIndex: 2,
+          opacity: phase === 1 ? 1 : 0,
+          transform: phase === 1 ? 'translateY(0px)' : 'translateY(60px)',
+          transition: 'opacity 0.8s ease, transform 0.8s cubic-bezier(0.4,0,0.2,1)',
+          pointerEvents: phase === 1 ? 'auto' : 'none',
+          padding: '0 20px',
+        }}>
+          <div style={{
+            display: 'inline-block', marginBottom: '18px',
+            fontWeight: 700, fontSize: '0.8rem', letterSpacing: '4px',
+            textTransform: 'uppercase', color: 'var(--primary-light)',
+          }}>
+            TRUSTED SINCE 1995
+          </div>
+          <h1 className="gradient-text-cyan" style={{
+            fontWeight: 900,
+            fontSize: 'clamp(2.2rem, 5vw, 4rem)',
+            lineHeight: '1.1', marginBottom: '18px',
+          }}>
+            Powering Water<br />Across Nagpur
+          </h1>
+          <p style={{ color: '#cbd5e1', fontSize: '1.1rem', maxWidth: '560px', margin: '0 auto 32px', lineHeight: 1.7 }}>
+            30+ years of precision drilling and complete water solutions for{' '}
+            <strong style={{ color: 'var(--primary)' }}>homes, farms &amp; industries.</strong>
+          </p>
+          {/* Stats row */}
+          <div style={{
+            display: 'flex', justifyContent: 'center', gap: '48px', flexWrap: 'wrap',
+            padding: '22px 32px',
+            background: 'rgba(0,229,255,0.05)',
+            border: '1px solid rgba(0,229,255,0.15)',
+            borderRadius: '14px',
+            maxWidth: '620px', margin: '0 auto 32px',
+          }}>
+            {[['2,500+', 'CUSTOMERS SERVED'], ['30+', 'YEARS EXPERIENCE'], ['24/7', 'EMERGENCY']].map(([val, label]) => (
+              <div key={label} style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '2.4rem', fontWeight: 900, color: 'var(--primary)', lineHeight: 1 }}>{val}</div>
+                <div style={{ fontSize: '0.68rem', color: 'var(--text-muted)', marginTop: '5px', letterSpacing: '1.5px' }}>{label}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link to="/contact" className="btn-primary" style={{ padding: '13px 34px', fontSize: '1rem' }}>Request Service</Link>
+            <Link to="/about" className="btn-outline" style={{ padding: '13px 34px', fontSize: '1rem', color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}>Learn More</Link>
+          </div>
+          <div style={{ marginTop: '28px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', letterSpacing: '3px', textTransform: 'uppercase', margin: 0 }}>
+              SCROLL TO CONTINUE
+            </p>
+            <div style={{ width: '1px', height: '36px', background: 'linear-gradient(to bottom, var(--primary), transparent)' }} />
+          </div>
+        </div>
+
+        {/* Progress dots */}
+        <div style={{
+          position: 'absolute', right: '28px', top: '50%',
+          transform: 'translateY(-50%)',
+          display: 'flex', flexDirection: 'column', gap: '10px', zIndex: 5,
+        }}>
+          {[0, 1].map(i => (
+            <div key={i} style={{
+              width: '6px',
+              height: i === phase ? '26px' : '6px',
+              borderRadius: '3px',
+              background: i === phase ? 'var(--primary)' : 'rgba(255,255,255,0.2)',
+              transition: 'all 0.4s ease',
+            }} />
           ))}
         </div>
 
-        <div style={{ display: 'flex', gap: '14px', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <Link to="/contact" className="btn-primary" style={{ padding: '13px 34px', fontSize: '1rem' }}>Request Service</Link>
-          <Link to="/about" className="btn-outline" style={{ padding: '13px 34px', fontSize: '1rem', color: '#fff', borderColor: 'rgba(255,255,255,0.3)' }}>Learn More</Link>
+        {/* Wave divider */}
+        <div style={{ position: 'absolute', bottom: -1, left: 0, width: '100%', overflow: 'hidden', lineHeight: 0, zIndex: 10 }}>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" preserveAspectRatio="none" style={{ display: 'block', width: '100%', height: '80px', fill: 'var(--surface)' }}>
+            <path d="M0,40c0,0 120.077,-38.076 250,-38c129.923,0.076 345.105,78 500,78c154.895,0 250,-30 250,-30l0,50l-1000,0l0,-60Z" />
+          </svg>
         </div>
-
-        {/* Scroll hint */}
-        <div style={{ marginTop: '32px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.7rem', letterSpacing: '3px', textTransform: 'uppercase', margin: 0 }}>
-            SCROLL TO CONTINUE
-          </p>
-          <div style={{ width: '1px', height: '36px', background: 'linear-gradient(to bottom, var(--primary), transparent)' }} />
-        </div>
-      </div>
-
-      {/* Progress dots (right side) */}
-      <div style={{
-        position: 'absolute', right: '28px', top: '50%', transform: 'translateY(-50%)',
-        display: 'flex', flexDirection: 'column', gap: '10px', zIndex: 5,
-      }}>
-        {[0, 1].map(i => (
-          <div key={i} style={{
-            width: '6px',
-            height: i === Math.min(phase, 1) ? '26px' : '6px',
-            borderRadius: '3px',
-            background: i === Math.min(phase, 1) ? 'var(--primary)' : 'rgba(255,255,255,0.2)',
-            transition: 'all 0.4s ease',
-          }} />
-        ))}
-      </div>
-
-      {/* Wave divider */}
-      <div style={{ position: 'absolute', bottom: -1, left: 0, width: '100%', overflow: 'hidden', lineHeight: 0, zIndex: 10 }}>
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" preserveAspectRatio="none" style={{ display: 'block', width: '100%', height: '80px', fill: 'var(--surface)' }}>
-          <path d="M0,40c0,0 120.077,-38.076 250,-38c129.923,0.076 345.105,78 500,78c154.895,0 250,-30 250,-30l0,50l-1000,0l0,-60Z" />
-        </svg>
       </div>
     </div>
   );
 }
+
 
 export default function Home() {
   const { services, loading } = useAppContext();
@@ -207,12 +189,10 @@ export default function Home() {
 
   return (
     <div>
-      {/* Scroll-locked Hero */}
-      <section className="hero-section" style={{ position: 'sticky', top: 0, zIndex: 0 }}>
-        <ScrollHero />
-      </section>
+      {/* Scroll-driven Hero (takes 200vh of scroll space, sticky inner panel) */}
+      <ScrollHero />
 
-      {/* Anchor for scroll-jump */}
+      {/* Rest of page */}
       <div id="main-content" style={{ position: 'relative', zIndex: 1, background: 'var(--surface)' }}>
 
         {/* 2. Services Section */}

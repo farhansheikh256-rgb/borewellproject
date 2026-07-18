@@ -597,3 +597,4 @@ tr:hover { background: rgba(0,0,0,0.02); }
   background-clip: text;
   color: transparent;
 }
+@keyframes heroPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
