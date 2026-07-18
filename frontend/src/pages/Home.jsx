@@ -25,14 +25,12 @@ export default function Home() {
         
         <div className="container text-center" style={{ position: 'relative', zIndex: 2 }}>
           <div className="hero-badge" style={{ display: 'inline-block', padding: '6px 16px', border: '1px solid var(--primary)', borderRadius: '30px', color: 'white', background: 'rgba(2, 132, 199, 0.4)', marginBottom: '20px', fontWeight: 'bold', fontSize: '0.9rem', letterSpacing: '1px', textTransform: 'uppercase' }}>
-            Family Owned & Operated Since 2005
+            Family Owned & Operated Since 1995
           </div>
           <h1 className="mb-4" style={{ fontWeight: 800, color: '#fff', textShadow: '0 2px 10px rgba(0,0,0,0.8)', fontSize: '3.5rem', lineHeight: '1.2' }}>
             From Ground to Life – <br/><span style={{ color: 'var(--primary)' }}>Reliable Borewell Solutions.</span>
           </h1>
-          <p className="section-subtitle mb-4" style={{ color: '#000000', fontWeight: 600, textShadow: '0 1px 15px rgba(255,255,255,0.9), 0 0 5px rgba(255,255,255,0.5)', fontSize: '1.3rem', maxWidth: '750px', margin: '0 auto', letterSpacing: '0.5px' }}>
-            Serving Nagpur and the Surrounding Regions. Precision drilling and complete water solutions through the toughest geological formations.
-          </p>
+
           <div className="hero-cta-group mt-4" style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
              <Link to="/contact" className="btn-primary" style={{ padding: '14px 32px', fontSize: '1.1rem' }}>Request Service</Link>
              <Link to="/about" className="btn-outline" style={{ padding: '14px 32px', fontSize: '1.1rem', color: '#fff', borderColor: '#fff' }}>Learn More</Link>
