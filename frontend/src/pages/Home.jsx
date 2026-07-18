@@ -88,27 +88,54 @@ function VideoScrollHero() {
   const [progress, setProgress] = useState(0);
   const [textPhase, setTextPhase] = useState(0);
 
-  // Smooth scrubber: scroll sets a TARGET, RAF lerps video currentTime toward it
+  // Smooth scrubber with passive event listening, conditional RAF loop, and seek throttling
   useEffect(() => {
     let targetProgress = 0;
     let currentProgress = 0;
     let rafId = null;
+    let isLooping = false;
+    let lastSeekTime = 0;
+
     const lerp = (a, b, t) => a + (b - a) * t;
 
-    const tick = () => {
-      // 0.08 = very silky smooth, increase to 0.15 for slightly faster catch-up
-      currentProgress = lerp(currentProgress, targetProgress, 0.08);
+    const updateVideoTime = (progressVal) => {
       const vid = videoRef.current;
-      if (vid && vid.duration && !isNaN(vid.duration)) {
-        vid.currentTime = currentProgress * vid.duration;
+      if (!vid || !vid.duration || isNaN(vid.duration)) return;
+
+      const now = performance.now();
+      // Throttle seeking to max once every 33ms (approx 30fps) to prevent decoding lag
+      if (now - lastSeekTime > 33 || Math.abs(progressVal - targetProgress) < 0.001) {
+        vid.currentTime = progressVal * vid.duration;
+        lastSeekTime = now;
       }
+    };
+
+    const tick = () => {
+      // Smoothly interpolate progress
+      currentProgress = lerp(currentProgress, targetProgress, 0.1);
+
+      // Stop loop if we are close enough to target
+      if (Math.abs(currentProgress - targetProgress) < 0.0005) {
+        currentProgress = targetProgress;
+        updateVideoTime(currentProgress);
+        setProgress(currentProgress);
+        if (currentProgress < 0.35) setTextPhase(0);
+        else if (currentProgress < 0.7) setTextPhase(1);
+        else setTextPhase(2);
+        
+        isLooping = false;
+        if (rafId) cancelAnimationFrame(rafId);
+        return;
+      }
+
+      updateVideoTime(currentProgress);
       setProgress(currentProgress);
       if (currentProgress < 0.35) setTextPhase(0);
       else if (currentProgress < 0.7) setTextPhase(1);
       else setTextPhase(2);
+
       rafId = requestAnimationFrame(tick);
     };
-    rafId = requestAnimationFrame(tick);
 
     const onScroll = () => {
       const el = containerRef.current;
@@ -116,13 +143,21 @@ function VideoScrollHero() {
       const rect = el.getBoundingClientRect();
       const totalScroll = el.offsetHeight - window.innerHeight;
       targetProgress = Math.min(Math.max(0, -rect.top) / totalScroll, 1);
+
+      // Start the animation loop if it's not already running
+      if (!isLooping) {
+        isLooping = true;
+        rafId = requestAnimationFrame(tick);
+      }
     };
 
     window.addEventListener('scroll', onScroll, { passive: true });
+    // Initial paint
     onScroll();
+
     return () => {
       window.removeEventListener('scroll', onScroll);
-      cancelAnimationFrame(rafId);
+      if (rafId) cancelAnimationFrame(rafId);
     };
   }, []);
 
